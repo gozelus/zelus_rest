@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -12,7 +13,9 @@ type Server struct {
 
 type engine interface {
 	addRoute(method, path string, handler http.HandlerFunc) error
-	http.Handler
+	use(middlewares ...Middleware)
+
+	ServeHTTP(http.ResponseWriter, *http.Request)
 }
 
 func NewServer() *Server {
@@ -32,16 +35,23 @@ type Route struct {
 	Handler http.HandlerFunc
 }
 
-func (s *Server) Run(host string, port int, routes ...Route) error {
-	server := &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", host, port),
-		Handler: s.engine,
-	}
-
+func (s *Server) Use(middlrewares ...Middleware) *Server {
+	s.engine.use(middlrewares...)
+	return s
+}
+func (s *Server) AddRoute(routes ...Route) *Server {
 	for _, r := range routes {
-		s.engine.addRoute(r.Method, r.Path, r.Handler)
+		if err := s.engine.addRoute(r.Method, r.Path, r.Handler); err != nil {
+			log.Fatal(err)
+		}
 	}
-
+	return s
+}
+func (s *Server) Run(host string, port int) error {
+	server := &http.Server{
+		Addr: fmt.Sprintf("%s:%d", host, port),
+	}
+	server.Handler = s.engine
 	defer server.Shutdown(context.Background())
 	return server.ListenAndServe()
 }
