@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-type userService interface {
+type UserServiceInter interface {
 	GetUser(req *types.GetUserRequest) (*types.GetUserResponse, error)
 }
 type UserController struct {
-	userService userService
+	userService UserServiceInter
 }
 
-func NewUserController(userService userService) *UserController {
+func NewUserController(userService UserServiceInter) *UserController {
 	return &UserController{userService: userService}
 }
 

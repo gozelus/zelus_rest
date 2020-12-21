@@ -5,15 +5,15 @@ import (
 	"github.com/gozelus/zelus_rest/example/internal/types"
 )
 
-type userRepo interface {
+type UserRepoInter interface {
 	MGetUser(userIDs []int64) (map[int64]*entity.User, error)
 }
 
 type UserService struct {
-	userRepo userRepo
+	userRepo UserRepoInter
 }
 
-func NewUserService(userRepo userRepo) *UserService {
+func NewUserService(userRepo UserRepoInter) *UserService {
 	return &UserService{userRepo: userRepo}
 }
 

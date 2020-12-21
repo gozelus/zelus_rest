@@ -1,18 +1,18 @@
-package internal
+package router
 
 import (
 	"github.com/gozelus/zelus_rest"
 	"net/http"
 )
 
-type userController interface {
+type UserControllerInter interface {
 	GetUser(w http.ResponseWriter, req *http.Request)
 }
 type Router struct {
-	user userController
+	user UserControllerInter
 }
 
-func NewRouter(user userController) *Router {
+func NewRouter(user UserControllerInter) *Router {
 	return &Router{user: user}
 }
 
