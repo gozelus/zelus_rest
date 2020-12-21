@@ -1,21 +1,27 @@
 package internal
 
 import (
+	"github.com/gozelus/zelus_rest"
 	"net/http"
-
-	rest "github.com/gozelus/zelus_rest"
 )
 
-var (
-	routes []rest.Route
-)
+type userController interface {
+	GetUser(w http.ResponseWriter, req *http.Request)
+}
+type Router struct {
+	user userController
+}
 
-func init() {
-	routes = []rest.Route{
+func NewRouter(user userController) *Router {
+	return &Router{user: user}
+}
+
+func (r *Router) Routes() []rest.Route {
+	return []rest.Route{
 		{
 			Method:  http.MethodGet,
-			Path:    "/user/info",
-			Handler: GetUser,
+			Path:    "/user/get",
+			Handler: r.user.GetUser,
 		},
 	}
 }

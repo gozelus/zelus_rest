@@ -16,14 +16,13 @@ type UserService struct {
 func NewUserService(userRepo userRepo) *UserService {
 	return &UserService{userRepo: userRepo}
 }
+
 func (s *UserService) GetUser(req *types.GetUserRequest) (*types.GetUserResponse, error) {
 	users, err := s.userRepo.MGetUser([]int64{req.UserID})
-
 	if err != nil {
 		return nil, err
 	}
 	res := &types.GetUserResponse{}
-
 	if val, ok := users[req.UserID]; ok {
 		res.UserID = val.UserID
 		res.UserName = val.NickName
