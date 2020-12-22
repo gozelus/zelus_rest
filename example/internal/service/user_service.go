@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/gozelus/zelus_rest/example/entity"
+	"github.com/gozelus/zelus_rest/example/internal/entity"
 	"github.com/gozelus/zelus_rest/example/internal/types"
 )
 

@@ -3,7 +3,7 @@ package repo
 import (
 	"database/sql"
 
-	"github.com/gozelus/zelus_rest/example/entity"
+	"github.com/gozelus/zelus_rest/example/internal/entity"
 )
 
 type UserRepo struct {

@@ -4,11 +4,12 @@ package injector
 
 import (
 	"database/sql"
+
 	"github.com/google/wire"
 	"github.com/gozelus/zelus_rest/example/internal/controller"
+	"github.com/gozelus/zelus_rest/example/internal/repo"
 	"github.com/gozelus/zelus_rest/example/internal/router"
 	"github.com/gozelus/zelus_rest/example/internal/service"
-	"github.com/gozelus/zelus_rest/example/repo"
 )
 
 var set = wire.NewSet(
