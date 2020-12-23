@@ -16,16 +16,19 @@ type Member struct {
 	Type string
 }
 type Type struct {
-	Name    string
-	Members []Member
+	Name     string
+	TypeName string
+	Tags     []string
+	Members  []Member
 }
 
 type Handler struct {
-	FuncName   string
-	ReturnName string
-	ParamsName string
-	Method     string
-	Path       string
+	FuncName       string
+	ReturnName     string
+	ParamsName     string
+	Method         string
+	Path           string
+	ControllerName string
 }
 type Controller struct {
 	Name     string
@@ -45,9 +48,24 @@ type ApiStruct struct {
 }
 
 func GenGoCode() {
-	api, _ := ParseApi("/Users/momo/workspace/projects/zelus_rest/example/api/minitaobao.api")
+	api, _ := ParseApi("/Users/zhengli/workspace/private/projects/zelus_rest/example/api/minitaobao.api")
 	genTypesCode(api)
 	genServiceCode(api)
+	if err := genRouteCode(api); err != nil {
+		panic(err)
+	}
+}
+
+func genRouteCode(api *ApiStruct) error {
+	os.RemoveAll("./routes")
+	os.Mkdir("./routes", 0777)
+	file, _ := os.Create("./routes/routes.go")
+	// 编译模板
+	return template.Must(template.New("routesTpl").Parse(RouteTpl)).Execute(file, struct {
+		Controllers []Controller
+	}{
+		Controllers: []Controller{api.Controller},
+	})
 }
 func genTypesCode(api *ApiStruct) error {
 	os.RemoveAll("./types")
@@ -162,11 +180,12 @@ func (s *baseState) processService(api *ApiStruct, token string) error {
 			line = strings.Trim(lines[lineNum+1], " ")
 			statement := strings.Split(line, " ")
 			handlers = append(handlers, Handler{
-				FuncName:   handlerName,
-				Method:     statement[0],
-				Path:       statement[1],
-				ParamsName: statement[2],
-				ReturnName: statement[4],
+				ControllerName: controllerName,
+				FuncName:       handlerName,
+				Method:         strings.ToUpper(statement[0]),
+				Path:           statement[1],
+				ParamsName:     statement[2],
+				ReturnName:     statement[4],
 			})
 			lineNum += 2
 		}

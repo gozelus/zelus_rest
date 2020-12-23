@@ -26,6 +26,7 @@ func New{{.ControllerName}}({{.ControllerName}}Service {{.ControllerName}}Servic
 func (c *{{$.ControllerName}}) {{.FuncName}}(w http.ResponseWriter, req *http.Request) {
 	param := &types.{{.ParamsName}}{}
     rest.JsonBodyFromRequest(req, param)
+	// check with tag
 	res, _ := c.{{$.ControllerName}}Service.{{.FuncName}}(param)
 	rest.OkJson(w, res)
 }
