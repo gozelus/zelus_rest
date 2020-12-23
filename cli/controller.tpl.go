@@ -1,16 +1,16 @@
 package main
 
 var ControllerTpl = `package controller
+
 import (
 	"net/http"
+
 	"github.com/gozelus/zelus_rest"
 	"github.com/gozelus/zelus_rest/cli/types"
 )
 
-type {{.ControllerName}}ServiceInterface interface{
-{{range .Handlers}}
-	{{.FuncName}}(*types.{{.ParamsName}})(*types.{{.ReturnName}}, error)
-{{end}}
+type {{.ControllerName}}ServiceInterface interface { {{range .Handlers}}
+	{{.FuncName}}(*types.{{.ParamsName}}) (*types.{{.ReturnName}}, error) {{end}}
 }
 
 type {{.ControllerName}} struct {
@@ -22,7 +22,6 @@ func New{{.ControllerName}}({{.ControllerName}}Service {{.ControllerName}}Servic
 		{{.ControllerName}}Service: {{.ControllerName}}Service,
 	}
 }
-
 {{range .Handlers}}
 func (c *{{$.ControllerName}}) {{.FuncName}}(w http.ResponseWriter, req *http.Request) {
 	param := &types.{{.ParamsName}}{}

@@ -68,14 +68,13 @@ func genServiceCode(api *ApiStruct) error {
 	file, _ := os.Create(goFileName)
 	// 编译模板
 	controllerName := api.Controller.Name
-	template.Must(template.New("controllerTpl").Parse(ControllerTpl)).Execute(file, struct {
+	return template.Must(template.New("controllerTpl").Parse(ControllerTpl)).Execute(file, struct {
 		ControllerName string
 		Handlers       []Handler
 	}{
 		Handlers:       api.Controller.Handlers,
 		ControllerName: controllerName,
 	})
-	return nil
 }
 
 // ParseApi 用于将 api 文件转换为 ApiStruct
