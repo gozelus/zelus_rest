@@ -40,7 +40,7 @@ type ApiStruct struct {
 	// api 服务
 	Controller Controller
 	Imports    string
-	// api 服务定义的开始行
+	// api 服务定义的开始
 	serviceBeginLine int
 }
 
@@ -64,7 +64,7 @@ func genTypesCode(api *ApiStruct) error {
 func genServiceCode(api *ApiStruct) error {
 	os.RemoveAll("./controllers")
 	os.Mkdir("./controllers", 0777)
-	goFileName := fmt.Sprintf("./controllers/%s.go", strings.ToLower(api.Controller.Name))
+	goFileName := fmt.Sprintf("./controllers/%s_controller.go", strings.ToLower(api.Controller.Name))
 	file, _ := os.Create(goFileName)
 	// 编译模板
 	controllerName := api.Controller.Name
