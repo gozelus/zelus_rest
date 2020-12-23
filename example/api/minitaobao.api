@@ -1,7 +1,24 @@
 type UserGetRequest struct {
-   UserID int64
+    UserID int64
 }
 type UserGetResponse struct {
-  UserID int64
-  UserName string
+    UserID int64
+    UserName string
+}
+
+type UserCreateRequest struct {
+    UserID int64
+    UserName string
+}
+type UserCreateResponse struct {
+    UserID int64
+    UserName string
+}
+
+service User {
+    @handler UserGet
+    get /user/info UserGetRequest returns UserGetResponse
+
+    @handler UserCreate
+    post /user/create UserCreateRequest returns UserCreateResponse
 }
