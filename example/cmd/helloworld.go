@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	s := rest.NewServer()
+	s := rest.NewServer("localhost", 8080)
 	s.AddRoute(injector.NewRouter().Routes()...)
 	s.Use(rest.LoggerMiddleware)
-	s.Run("localhost", 8080)
+	s.Run()
 }

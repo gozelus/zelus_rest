@@ -1,4 +1,4 @@
-package searchTree
+package core
 
 import "errors"
 

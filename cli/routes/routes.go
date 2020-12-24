@@ -29,13 +29,13 @@ func (r *Router) Routes() []rest.Route {
 		
 		
 		{
-			Method:  GET,
+			Method:  "GET",
 			Path:    "/user/info",
 			Handler: r.User.UserGet,
 		},
         
 		{
-			Method:  POST,
+			Method:  "POST",
 			Path:    "/user/create",
 			Handler: r.User.UserCreate,
 		},
