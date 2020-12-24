@@ -7,15 +7,18 @@ import (
 )
 
 type UserRepo struct {
-	sql *sql.DB
+	sql *sql.Conn
 }
 
-func NewUserRepo(sql *sql.DB) *UserRepo {
+func NewUserRepo(sql *sql.Conn) *UserRepo {
 	return &UserRepo{sql: sql}
 }
 
+func (repo *UserRepo) FindOne(userID int64) (*entity.User, error) {
+}
+
 func (repo *UserRepo) MGetUser(userIDs []int64) (map[int64]*entity.User, error) {
-	rows, err := repo.sql.Query("select * from users where user_id in (?)", userIDs)
+	rows, err := repo.sql.QueryContext(nil, "select * from users where user_id in (?)", userIDs)
 	if err != nil {
 		return nil, err
 	}
