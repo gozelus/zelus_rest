@@ -127,6 +127,18 @@ func setupWithFiles(c *LogConf) {
 	}
 }
 
+func Info(v ...interface{}) {
+	info(fmt.Sprint(v))
+}
+func Debug(v ...interface{}) {
+	debug(fmt.Sprint(v))
+}
+func Warn(v ...interface{}) {
+	warn(fmt.Sprint(v))
+}
+func Error(v ...interface{}) {
+	errorz(fmt.Sprint(v))
+}
 func Infof(str string, args ...interface{}) {
 	info(fmt.Sprintf(str, args...))
 }
@@ -136,7 +148,6 @@ func Debugf(str string, args ...interface{}) {
 func Warnf(str string, args ...interface{}) {
 	warn(fmt.Sprintf(str, args...))
 }
-
 func Errorf(str string, args ...interface{}) {
 	errorz(fmt.Sprintf(str, args...))
 }
@@ -153,6 +164,7 @@ func warn(msg string) {
 	output(WarnLogLevel, msg)
 }
 func errorz(msg string) {
+	// TODO need add call stack
 	output(ErrorLogLevel, msg)
 }
 func debug(msg string) {
