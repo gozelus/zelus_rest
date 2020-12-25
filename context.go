@@ -84,6 +84,19 @@ func (c *contextImp) Next() {
 		c.index++
 	}
 }
+func (c *contextImp) JSONBodyBind(ptr interface{}) error {
+	return json.NewDecoder(c.request.Body).Decode(ptr)
+}
+func (c *contextImp) JSONQueryBind(ptr interface{}) error {
+	form := map[string]interface{}{}
+	for k, v := range c.request.URL.Query() {
+		if len(v) > 0 {
+			form[k] = v[0]
+		}
+	}
+	bytes, _ := json.Marshal(form)
+	return json.Unmarshal(bytes, ptr)
+}
 
 // private func
 

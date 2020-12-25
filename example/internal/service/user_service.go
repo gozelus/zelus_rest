@@ -1,32 +1,29 @@
 package service
 
 import (
+	controller "github.com/gozelus/zelus_rest/cli/controllers"
+	"github.com/gozelus/zelus_rest/cli/types"
 	"github.com/gozelus/zelus_rest/example/internal/entity"
-	"github.com/gozelus/zelus_rest/example/internal/types"
 )
 
 type UserRepoInter interface {
 	MGetUser(userIDs []int64) (map[int64]*entity.User, error)
 }
 
+var _ controller.UserServiceInterface = &UserService{}
+
 type UserService struct {
 	userRepo UserRepoInter
 }
 
-func NewUserService(userRepo UserRepoInter) *UserService {
-	return &UserService{userRepo: userRepo}
+func (s *UserService) UserGet(request *types.UserGetRequest) (*types.UserGetResponse, error) {
+	panic("implement me")
 }
 
-func (s *UserService) GetUser(req *types.GetUserRequest) (*types.GetUserResponse, error) {
-	users, err := s.userRepo.MGetUser([]int64{req.UserID})
-	if err != nil {
-		return nil, err
-	}
-	res := &types.GetUserResponse{}
-	if val, ok := users[req.UserID]; ok {
-		res.UserID = val.UserID
-		res.UserName = val.NickName
-		return res, nil
-	}
-	return nil, err
+func (s *UserService) UserCreate(request *types.UserCreateRequest) (*types.UserCreateResponse, error) {
+	panic("implement me")
+}
+
+func NewUserService(userRepo UserRepoInter) *UserService {
+	return &UserService{userRepo: userRepo}
 }

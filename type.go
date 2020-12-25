@@ -23,6 +23,10 @@ var (
 		Code:    http.StatusInternalServerError,
 		Message: "internal server error",
 	}
+	StatusBadRequest = Error{
+		Code:    http.StatusBadRequest,
+		Message: "bad request",
+	}
 )
 
 func (e Error) ErrorCode() int {
@@ -63,6 +67,8 @@ type (
 		Headers() map[string][]string
 		Method() string
 		Path() string
+		JSONBodyBind(v interface{}) error
+		JSONQueryBind(v interface{}) error
 
 		Next()
 		OkJSON(interface{})
@@ -131,6 +137,7 @@ func NewServer(host string, port int, opts ...Option) Server {
 					c.ErrorJSON(StatusInternalServerError)
 				}
 			}()
+			c.Next()
 			return nil
 		}
 		server.use(server.plugin.Recovery)

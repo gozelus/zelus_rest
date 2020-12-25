@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	rest "github.com/gozelus/zelus_rest"
+	"github.com/gozelus/zelus_rest/example/internal/controller/user"
 	"github.com/gozelus/zelus_rest/logger"
 )
 
@@ -14,7 +15,9 @@ func main() {
 		Method: http.MethodGet,
 		Path:   "/user",
 		Handler: func(context rest.Context) rest.ErrorInterface {
-			logger.ErrorfWithStackWithContext(context, "err : %s", "wow")
+			req := &user.RegisterRequest{}
+			context.JSONQueryBind(req)
+			logger.InfofWithContext(context, "nickname : %s", req.Nickname)
 			return rest.StatusInternalServerError
 		},
 	})
