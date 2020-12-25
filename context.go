@@ -5,46 +5,67 @@ import (
 	"math"
 	"net/http"
 	"sync"
+
+	"github.com/google/uuid"
 )
 
 // abortIndex 一个极大值
 // 一定比 handlers 数量大，导致 next 函数执行中断
 const abortIndex int8 = math.MaxInt8 / 2
 
-type Context struct {
+type contextImp struct {
 	context.Context
-	// Request 
-	Request   *http.Request
-	ResWriter http.ResponseWriter
+	request   *http.Request
+	resWriter http.ResponseWriter
 
 	// Keys 用于在控制流中传递内容
-	Keys map[string]interface{}
+	keys map[string]interface{}
 	// 用于标志唯一请求，上下文传递
-	RequestID string
+	requestID string
 
 	// mu 保护 Keys map
 	mu sync.RWMutex
 
-	handlers []func(c *Context)
+	handlers []HandlerFunc
 	index    int8
 }
 
-func (c *Context) Reset() {
+func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
+	c.Context = context.Background()
+	c.request = req
+	c.resWriter = w
+	c.keys = map[string]interface{}{}
+	c.requestID = uuid.Must(uuid.NewRandom()).String()
 	c.index = -1
 }
-func (c *Context) ErrorJSON() {
+func (c *contextImp) OkJSON()              {}
+func (c *contextImp) ErrorJSON()           {}
+func (c *contextImp) GetRequestID() string { return c.requestID }
+func (c *contextImp) Set(key string, v interface{}) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.keys[key] = v
 }
-func (c *Context) OkJSON() {
+
+func (c *contextImp) Get(key string) (v interface{}, ok bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	v, ok = c.keys[key]
+	return
 }
-func (c *Context) renderJSON(code int, jsonValue interface{}) {
+
+func (c *contextImp) setHandlers(hs ...HandlerFunc)     {
+	c.handlers = hs
 }
-func (c *Context) Abort() {
-	c.index = abortIndex
-}
-func (c *Context) Next() {
+func (c *contextImp) next() {
 	c.index++
 	for c.index < int8(len(c.handlers)) {
-		c.handlers[c.index](c)
+		if err := c.handlers[c.index](c); err != nil {
+			c.abort()
+		}
 		c.index++
 	}
+}
+func (c *contextImp) abort() {
+	c.index = abortIndex
 }

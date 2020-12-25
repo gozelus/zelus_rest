@@ -1,31 +1,46 @@
 package rest
 
 import (
+	"context"
 	"fmt"
-	"github.com/gozelus/zelus_rest/core"
-	"github.com/gozelus/zelus_rest/logger"
 	"net/http"
-	path2 "path"
-	"time"
 )
 
 type (
+
+	// handlerFund 定义实际处理请求的函数
+	HandlerFunc func(*Context) error
+
 	// Route 最终挂载给 http 服务的函数
 	Route struct {
 		Method  string
 		Path    string
-		Handler http.HandlerFunc
+		Handler HandlerFunc
+	}
+
+	Context interface {
+		context.Context
+
+		OkJSON()
+		ErrorJSON()
+		GetRequestID() string
+		Set(string, interface{})
+		Get(string) (interface{}, bool)
+
+		init(http.ResponseWriter, *http.Request)
+		setHandlers(...HandlerFunc)
+		next()
 	}
 
 	// Middleware 中间件函数
-	Middleware func(next http.HandlerFunc) http.HandlerFunc
+	Middleware func(next HandlerFunc) HandlerFunc
 
 	// Server 服务实体
 	Server interface {
 		// Run 启动
 		Run() error
 		// Use 使用中间件
-		Use(middlewares ...Middleware) error
+		Use(middlewares ...HandlerFunc) error
 		// AddRoute 挂载路由
 		AddRoute(route ...Route) error
 	}
@@ -37,20 +52,8 @@ func NewServer(host string, port int) Server {
 		httpServer: &http.Server{
 			Addr: fmt.Sprintf("%s:%d", host, port),
 		},
-		engine: core.NewEnginez(),
+		enginez: newEnginez(),
 	}
-	server.httpServer.Handler = server.engine
+	server.httpServer.Handler = server.enginez
 	return server
 }
-
-var (
-	LoggerMiddleware Middleware = func(next http.HandlerFunc) http.HandlerFunc {
-		return func(writer http.ResponseWriter, request *http.Request) {
-			method := request.Method
-			path := path2.Clean(request.URL.Path)
-			now := time.Now()
-			next(writer, request)
-			logger.Infof("[%s]-[%s]-[%dms]", method, path, now.Sub(time.Now()).Milliseconds())
-		}
-	}
-)
