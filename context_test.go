@@ -17,6 +17,7 @@ func a(c *Context) {
 	fmt.Println("here is a")
 }
 func b(c *Context) {
+	c.Abort()
 	c.Next()
 	fmt.Println("here is b")
 }

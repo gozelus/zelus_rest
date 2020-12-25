@@ -2,9 +2,14 @@ package rest
 
 import (
 	"context"
+	"math"
 	"net/http"
 	"sync"
 )
+
+// abortIndex 一个极大值
+// 一定比 handlers 数量大，导致 next 函数执行中断
+const abortIndex int8 = math.MaxInt8 / 2
 
 type Context struct {
 	context.Context
@@ -32,6 +37,9 @@ func (c *Context) ErrorJSON() {
 func (c *Context) OkJSON() {
 }
 func (c *Context) renderJSON(code int, jsonValue interface{}) {
+}
+func (c *Context) Abort() {
+	c.index = abortIndex
 }
 func (c *Context) Next() {
 	c.index++
