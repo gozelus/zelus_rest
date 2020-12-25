@@ -2,56 +2,40 @@ package rest
 
 import (
 	"context"
-	"fmt"
+	"github.com/gozelus/zelus_rest/core"
 	"log"
 	"net/http"
 )
 
-type Server struct {
-	engine engine
+type serverImp struct {
+	engine     *core.Enginez
+	httpServer *http.Server
 }
 
-type engine interface {
-	addRoute(method, path string, handler http.HandlerFunc) error
-	use(middlewares ...Middleware)
-
-	ServeHTTP(http.ResponseWriter, *http.Request)
-}
-
-func NewServer() *Server {
-	ege := newEnginez(NewRouterz())
-	return newServer(ege)
-}
-
-func newServer(e engine) *Server {
-	return &Server{
-		engine: e,
+// Use 加载中间件
+func (s *serverImp) Use(middlrewares ...Middleware) error {
+	for _, m := range middlrewares {
+		s.engine.Use(func(next http.HandlerFunc) http.HandlerFunc {
+			return m(next)
+		})
 	}
+	return nil
 }
 
-type Route struct {
-	Method  string
-	Path    string
-	Handler http.HandlerFunc
-}
-
-func (s *Server) Use(middlrewares ...Middleware) *Server {
-	s.engine.use(middlrewares...)
-	return s
-}
-func (s *Server) AddRoute(routes ...Route) *Server {
+// AddRoute 挂载路由
+func (s *serverImp) AddRoute(routes ...Route) error {
 	for _, r := range routes {
-		if err := s.engine.addRoute(r.Method, r.Path, r.Handler); err != nil {
+		if err := s.engine.AddRoute(r.Method, r.Path, r.Handler); err != nil {
 			log.Fatal(err)
+			return err
 		}
 	}
-	return s
+	return nil
 }
-func (s *Server) Run(host string, port int) error {
-	server := &http.Server{
-		Addr: fmt.Sprintf("%s:%d", host, port),
-	}
-	server.Handler = s.engine
+
+// Run
+func (s *serverImp) Run() error {
+	server := s.httpServer
 	defer server.Shutdown(context.Background())
 	return server.ListenAndServe()
 }

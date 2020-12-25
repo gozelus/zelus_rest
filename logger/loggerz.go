@@ -49,9 +49,9 @@ var (
 type LogOutputMode uint32
 
 const (
-	FileMode    LogOutputMode = 0b001
-	ConsoleMode LogOutputMode = 0b010
-	AllMode     LogOutputMode = 0b011
+	FileMode    LogOutputMode = 1 //0b001
+	ConsoleMode LogOutputMode = 2 //0b010
+	AllMode     LogOutputMode = 3 //0b011
 )
 
 type LogLevel uint32
