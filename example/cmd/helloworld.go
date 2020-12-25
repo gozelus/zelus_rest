@@ -1,13 +1,22 @@
 package main
 
 import (
-	"github.com/gozelus/zelus_rest"
-	"github.com/gozelus/zelus_rest/example/internal/injector"
+	"time"
+
+	"github.com/gozelus/zelus_rest/logger"
 )
 
 func main() {
-	s := rest.NewServer()
-	s.AddRoute(injector.NewRouter().Routes()...)
-	s.Use(rest.LoggerMiddleware)
-	s.Run("localhost", 8080)
+	for {
+		hahah()
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func hahah() {
+	haha2()
+}
+func haha2() {
+	logger.Infof("ok ..... ")
+	logger.InfofWithStack("ok ..... ")
 }
