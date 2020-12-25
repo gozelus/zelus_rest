@@ -19,7 +19,7 @@ type enginez struct {
 
 func newEnginez() *enginez {
 	e := &enginez{
-		routerz: NewRouterz(),
+		routerz: newRouterz(),
 	}
 	e.pool.New = func() interface{} {
 		return e.allocateContext()
@@ -28,11 +28,11 @@ func newEnginez() *enginez {
 }
 
 func (e *enginez) addRoute(method, path string, handler HandlerFunc) error {
-	return e.addRoute(method, path, handler)
+	return e.routerz.addRoute(method, path, handler)
 }
 
 func (e *enginez) search(method, path string) (HandlerFunc, error) {
-	return e.search(method, path)
+	return e.routerz.search(method, path)
 }
 
 func (e *enginez) use(middlewares ...HandlerFunc) {
@@ -53,7 +53,7 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx.init(w, req)
 	ctx.setHandlers(append(e.middlewares, h)...)
 	// 3. pass ctx to handler and run it
-	ctx.next()
+	ctx.Next()
 }
 
 func (e *enginez) allocateContext() Context {

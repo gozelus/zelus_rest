@@ -9,7 +9,7 @@ import (
 type (
 
 	// handlerFund 定义实际处理请求的函数
-	HandlerFunc func(*Context) error
+	HandlerFunc func(Context) error
 
 	// Route 最终挂载给 http 服务的函数
 	Route struct {
@@ -21,15 +21,15 @@ type (
 	Context interface {
 		context.Context
 
-		OkJSON()
-		ErrorJSON()
+		Next()
+		OkJSON(interface{})
+		ErrorJSON(error)
 		GetRequestID() string
 		Set(string, interface{})
 		Get(string) (interface{}, bool)
 
 		init(http.ResponseWriter, *http.Request)
 		setHandlers(...HandlerFunc)
-		next()
 	}
 
 	// Middleware 中间件函数

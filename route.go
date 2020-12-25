@@ -12,7 +12,7 @@ type routerz struct {
 	trees                   map[string]*core.Tree
 }
 
-func NewRouterz() *routerz {
+func newRouterz() *routerz {
 	r := &routerz{
 		trees: make(map[string]*core.Tree),
 	}
@@ -36,5 +36,9 @@ func (r *routerz) search(method, path string) (HandlerFunc, error) {
 			return result.Item.(HandlerFunc), nil
 		}
 	}
-	panic(errors.New("not found"))
+	var notFound = func(context Context) error {
+		context.ErrorJSON(errors.New("404"))
+		return nil
+	}
+	return notFound, nil
 }

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"encoding/json"
 	"math"
 	"net/http"
 	"sync"
@@ -38,8 +39,12 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.requestID = uuid.Must(uuid.NewRandom()).String()
 	c.index = -1
 }
-func (c *contextImp) OkJSON()              {}
-func (c *contextImp) ErrorJSON()           {}
+func (c *contextImp) OkJSON(obj interface{}) {
+	c.renderJSON(200, obj)
+}
+func (c *contextImp) ErrorJSON(err error) {
+	c.renderJSON(500, err)
+}
 func (c *contextImp) GetRequestID() string { return c.requestID }
 func (c *contextImp) Set(key string, v interface{}) {
 	c.mu.Lock()
@@ -54,10 +59,10 @@ func (c *contextImp) Get(key string) (v interface{}, ok bool) {
 	return
 }
 
-func (c *contextImp) setHandlers(hs ...HandlerFunc)     {
+func (c *contextImp) setHandlers(hs ...HandlerFunc) {
 	c.handlers = hs
 }
-func (c *contextImp) next() {
+func (c *contextImp) Next() {
 	c.index++
 	for c.index < int8(len(c.handlers)) {
 		if err := c.handlers[c.index](c); err != nil {
@@ -66,6 +71,24 @@ func (c *contextImp) next() {
 		c.index++
 	}
 }
+
+// private func
+
+// abort 用于中断流
 func (c *contextImp) abort() {
 	c.index = abortIndex
+}
+func (c *contextImp) renderJSON(code int, obj interface{}) error {
+	defer c.abort()
+	c.resWriter.WriteHeader(code)
+	header := c.resWriter.Header()
+	if val := header["Content-Type"]; len(val) == 0 {
+		header["Content-Type"] = []string{"application/javascript; charset=utf-8"}
+	}
+	jsonBytes, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
+	_, err = c.resWriter.Write(jsonBytes)
+	return err
 }
