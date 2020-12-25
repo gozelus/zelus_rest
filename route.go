@@ -1,14 +1,10 @@
 package rest
 
 import (
-	"errors"
-
 	"github.com/gozelus/zelus_rest/core"
 )
 
 type routerz struct {
-	notFoundHandler         HandlerFunc
-	methodNotAllowedHandler HandlerFunc
 	trees                   map[string]*core.Tree
 }
 
@@ -36,9 +32,7 @@ func (r *routerz) search(method, path string) (HandlerFunc, error) {
 			return result.Item.(HandlerFunc), nil
 		}
 	}
-	var notFound = func(context Context) error {
-		context.ErrorJSON(errors.New("404"))
-		return nil
-	}
-	return notFound, nil
+	return func(context Context) ErrorInterface {
+		return StatusNotFound
+	}, nil
 }

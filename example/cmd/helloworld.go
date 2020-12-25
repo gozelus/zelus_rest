@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"time"
 
 	rest "github.com/gozelus/zelus_rest"
 	"github.com/gozelus/zelus_rest/logger"
@@ -11,21 +10,12 @@ import (
 
 func main() {
 	s := rest.NewServer("localhost", 8080)
-	s.Use(func(context rest.Context) error {
-		now := time.Now()
-		context.Next()
-		logger.Debugf("duration : %v", time.Now().Sub(now))
-		return nil
-	}, func(context rest.Context) error {
-		logger.Debugf("req come ....")
-		return nil
-	})
 	s.AddRoute(rest.Route{
 		Method: http.MethodGet,
 		Path:   "/user",
-		Handler: func(context rest.Context) error {
-			context.OkJSON("hah")
-			return nil
+		Handler: func(context rest.Context) rest.ErrorInterface {
+			logger.ErrorfWithStackWithContext(context, "err : %s", "wow")
+			return rest.StatusInternalServerError
 		},
 	})
 	if err := s.Run(); err != nil {

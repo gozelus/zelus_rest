@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"math"
 	"net/http"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -36,14 +37,26 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.request = req
 	c.resWriter = w
 	c.keys = map[string]interface{}{}
-	c.requestID = uuid.Must(uuid.NewRandom()).String()
+	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
 }
 func (c *contextImp) OkJSON(obj interface{}) {
 	c.renderJSON(200, obj)
 }
-func (c *contextImp) ErrorJSON(err error) {
-	c.renderJSON(500, err)
+func (c *contextImp) ErrorJSON(err ErrorInterface) {
+	c.renderJSON(err.ErrorCode(), Error{
+		Code:    err.ErrorCode(),
+		Message: err.ErrorMessage(),
+	})
+}
+func (c *contextImp) Headers() map[string][]string {
+	return c.request.Header
+}
+func (c *contextImp) Method() string {
+	return c.request.Method
+}
+func (c *contextImp) Path() string {
+	return c.request.URL.Path
 }
 func (c *contextImp) GetRequestID() string { return c.requestID }
 func (c *contextImp) Set(key string, v interface{}) {
@@ -66,7 +79,7 @@ func (c *contextImp) Next() {
 	c.index++
 	for c.index < int8(len(c.handlers)) {
 		if err := c.handlers[c.index](c); err != nil {
-			c.abort()
+			c.ErrorJSON(err)
 		}
 		c.index++
 	}

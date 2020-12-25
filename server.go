@@ -9,6 +9,7 @@ import (
 type serverImp struct {
 	*enginez
 	httpServer *http.Server
+	plugin     *Plugin
 }
 
 // Use 加载中间件
