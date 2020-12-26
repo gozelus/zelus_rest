@@ -5,7 +5,7 @@ type DtoModel struct {
 	UserID   int64  `json:"user_id"`
 }
 type RegisterRequest struct {
-	Nickname string `json:"nickname",required:"true"`
+	Nickname string `json:"nickname" validate:"required"`
 }
 type RegisterResponse struct {
 	User *DtoModel `json:"user"`

@@ -3,6 +3,11 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/go-playground/validator/v10"
+	"github.com/gozelus/zelus_rest/logger"
+	"github.com/pkg/errors"
+	"io"
 	"math"
 	"net/http"
 	"strings"
@@ -28,10 +33,17 @@ type contextImp struct {
 	// mu 保护 Keys map
 	mu sync.RWMutex
 
+	validate *validator.Validate
 	handlers []HandlerFunc
 	index    int8
 }
 
+// contextImp 的构造函数
+func newContext() *contextImp {
+	c := contextImp{}
+	c.validate = validator.New()
+	return &c
+}
 func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.Context = context.Background()
 	c.request = req
@@ -85,7 +97,37 @@ func (c *contextImp) Next() {
 	}
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
-	return json.NewDecoder(c.request.Body).Decode(ptr)
+	var reader io.Reader
+	if c.request.ContentLength > 0 && strings.Contains(c.request.Header.Get("Content-Type"), "application/json") {
+		reader = c.request.Body
+	} else {
+		reader = strings.NewReader("{}")
+	}
+	err := json.NewDecoder(reader).Decode(ptr)
+	if err != nil {
+		return err
+	}
+	if err := c.validate.Struct(ptr); err != nil {
+		if _, ok := err.(*validator.InvalidValidationError); ok {
+			logger.Warnf("eer : %s ", err.Error())
+			return err
+		}
+		for _, err := range err.(validator.ValidationErrors) {
+			fmt.Println(err.Namespace())
+			fmt.Println(err.Field())
+			fmt.Println(err.StructNamespace())
+			fmt.Println(err.StructField())
+			fmt.Println(err.Tag())
+			fmt.Println(err.ActualTag())
+			fmt.Println(err.Kind())
+			fmt.Println(err.Type())
+			fmt.Println(err.Value())
+			fmt.Println(err.Param())
+			fmt.Println()
+		}
+		return errors.New("?")
+	}
+	return nil
 }
 func (c *contextImp) JSONQueryBind(ptr interface{}) error {
 	form := map[string]interface{}{}

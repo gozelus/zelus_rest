@@ -20,12 +20,12 @@ func NewController(user userServiceInterface) *Controller {
 }
 func (c *Controller) Register(ctx rest.Context) rest.ErrorInterface {
 	req := RegisterRequest{}
-	if err := ctx.JSONBodyBind(ctx); err != nil {
+	if err := ctx.JSONBodyBind(&req); err != nil {
 		return rest.StatusBadRequest
 	}
-	if err := c.user.Register(ctx, &req); err != nil {
-		return rest.StatusInternalServerError
-	}
+	//if err := c.user.Register(ctx, &req); err != nil {
+	//	return rest.StatusInternalServerError
+	//}
 	return nil
 }
 func (c *Controller) Info(ctx rest.Context) rest.ErrorInterface {

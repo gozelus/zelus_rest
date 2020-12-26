@@ -45,6 +45,7 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	reqPath := path.Clean(req.URL.Path)
 	h, _ := e.search(req.Method, reqPath)
 	// TODO need check method and path is ok
+	// means u should check search func called err result
 
 	// core code
 	// 1. get ctx from pool
@@ -57,5 +58,5 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (e *enginez) allocateContext() Context {
-	return &contextImp{}
+	return newContext()
 }
