@@ -32,7 +32,7 @@ func (r *routerz) search(method, path string) (HandlerFunc, error) {
 			return result.Item.(HandlerFunc), nil
 		}
 	}
-	return func(context Context) ErrorInterface {
-		return StatusNotFound
+	return func(context Context) {
+		context.RenderJSON(statusNotFound)
 	}, nil
 }

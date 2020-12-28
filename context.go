@@ -52,13 +52,17 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
 }
-func (c *contextImp) OkJSON(obj interface{}) {
-	c.renderJSON(200, obj)
-}
-func (c *contextImp) ErrorJSON(err ErrorInterface) {
-	c.renderJSON(err.ErrorCode(), Error{
-		Code:    err.ErrorCode(),
-		Message: err.ErrorMessage(),
+func (c *contextImp) RenderJSON(r Rsp) {
+	_ = c.renderJSON(r.ErrorCode(), struct {
+		Code      int         `json:"error_code"`
+		Message   string      `json:"error_message"`
+		RequestID string      `json:"request_id"`
+		Data      interface{} `json:"data"`
+	}{
+		Code:      r.ErrorCode(),
+		Message:   r.ErrorMessage(),
+		RequestID: c.requestID,
+		Data:      r.Data(),
 	})
 }
 func (c *contextImp) Headers() map[string][]string {
@@ -90,9 +94,7 @@ func (c *contextImp) setHandlers(hs ...HandlerFunc) {
 func (c *contextImp) Next() {
 	c.index++
 	for c.index < int8(len(c.handlers)) {
-		if err := c.handlers[c.index](c); err != nil {
-			c.ErrorJSON(err)
-		}
+		c.handlers[c.index](c)
 		c.index++
 	}
 }

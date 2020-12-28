@@ -18,16 +18,14 @@ func NewController(user userServiceInterface) *Controller {
 		user: user,
 	}
 }
-func (c *Controller) Register(ctx rest.Context) rest.ErrorInterface {
+func (c *Controller) Register(ctx rest.Context) {
 	req := RegisterRequest{}
 	if err := ctx.JSONBodyBind(&req); err != nil {
-		return rest.StatusBadRequest
+		ctx.RenderJSON(rest.StatusBadRequestResp())
 	}
 	//if err := c.user.Register(ctx, &req); err != nil {
 	//	return rest.StatusInternalServerError
 	//}
-	return nil
 }
-func (c *Controller) Info(ctx rest.Context) rest.ErrorInterface {
-	return nil
+func (c *Controller) Info(ctx rest.Context) {
 }
