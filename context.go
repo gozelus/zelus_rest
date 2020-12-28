@@ -115,16 +115,16 @@ func (c *contextImp) JSONBodyBind(ptr interface{}) error {
 			return err
 		}
 		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Println(err.Namespace())
-			fmt.Println(err.Field())
-			fmt.Println(err.StructNamespace())
-			fmt.Println(err.StructField())
-			fmt.Println(err.Tag())
-			fmt.Println(err.ActualTag())
-			fmt.Println(err.Kind())
-			fmt.Println(err.Type())
-			fmt.Println(err.Value())
-			fmt.Println(err.Param())
+			fmt.Printf("Namespace = %s \n", err.Namespace())
+			fmt.Printf("Field = %s \n", err.Field())
+			fmt.Printf("StructNamespace = %s \n", err.StructNamespace())
+			fmt.Printf("StructField = %s \n", err.StructField())
+			fmt.Printf("Tag = %s \n", err.Tag())
+			fmt.Printf("ActualTag = %s \n", err.ActualTag())
+			fmt.Printf("Kind = %s \n", err.Kind())
+			fmt.Printf("Type = %s \n", err.Type())
+			fmt.Printf("Value = %s \n", err.Value())
+			fmt.Printf("Param = %s \n", err.Param())
 			fmt.Println()
 		}
 		return errors.New("?")

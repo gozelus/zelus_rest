@@ -7,3 +7,6 @@ type User struct {
 
 func (u *User) Create() {
 }
+func (u *User) Update() {
+}
+func (u *User) Read() {}

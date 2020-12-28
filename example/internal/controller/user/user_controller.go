@@ -5,15 +5,15 @@ import (
 )
 
 type Controller struct {
-	user userServiceInterface
+	user UserServiceInterface
 }
 
-type userServiceInterface interface {
+type UserServiceInterface interface {
 	Register(ctx rest.Context, req *RegisterRequest) error
 	Info(ctx rest.Context, req *InfoRequest) error
 }
 
-func NewController(user userServiceInterface) *Controller {
+func NewController(user UserServiceInterface) *Controller {
 	return &Controller{
 		user: user,
 	}
