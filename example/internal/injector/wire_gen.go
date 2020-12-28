@@ -7,28 +7,27 @@ package injector
 
 import (
 	"database/sql"
-
 	"github.com/google/wire"
-	"github.com/gozelus/zelus_rest/example/internal/controller"
-	"github.com/gozelus/zelus_rest/example/internal/repo"
+	"github.com/gozelus/zelus_rest/example/internal/adapter/controllers"
+	"github.com/gozelus/zelus_rest/example/internal/adapter/repository"
+	"github.com/gozelus/zelus_rest/example/internal/domain/user"
 	"github.com/gozelus/zelus_rest/example/internal/router"
-	"github.com/gozelus/zelus_rest/example/internal/service"
 )
 
 // Injectors from wire.go:
 
 func NewRouter() *router.Router {
 	db := newdb()
-	userRepo := repo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo)
-	userController := controller.NewUserController(userService)
-	routerRouter := router.NewRouter(userController)
+	userRepo := repository.NewUserPepo(db)
+	domain := user.NewDomain(userRepo)
+	controller := controllers.NewController(domain)
+	routerRouter := router.NewRouter(controller)
 	return routerRouter
 }
 
 // wire.go:
 
-var set = wire.NewSet(wire.Bind(new(service.UserRepoInter), new(*repo.UserRepo)), wire.Bind(new(controller.UserServiceInter), new(*service.UserService)), wire.Bind(new(router.UserControllerInter), new(*controller.UserController)), repo.NewUserRepo, service.NewUserService, controller.NewUserController, router.NewRouter, newdb)
+var set = wire.NewSet(wire.Bind(new(router.UserControllerInter), new(*controllers.Controller)), wire.Bind(new(user.Repo), new(*repository.UserRepo)), wire.Bind(new(controllers.UserDomain), new(*user.Domain)), repository.NewUserPepo, user.NewDomain, controllers.NewController, router.NewRouter, newdb)
 
 func newdb() *sql.DB {
 	return nil

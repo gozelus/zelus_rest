@@ -4,22 +4,21 @@ package injector
 
 import (
 	"database/sql"
-
 	"github.com/google/wire"
-	"github.com/gozelus/zelus_rest/example/internal/controller"
-	"github.com/gozelus/zelus_rest/example/internal/repo"
+	"github.com/gozelus/zelus_rest/example/internal/adapter/controllers"
+	"github.com/gozelus/zelus_rest/example/internal/adapter/repository"
+	"github.com/gozelus/zelus_rest/example/internal/domain/user"
 	"github.com/gozelus/zelus_rest/example/internal/router"
-	"github.com/gozelus/zelus_rest/example/internal/service"
 )
 
 var set = wire.NewSet(
-	wire.Bind(new(service.UserRepoInter), new(*repo.UserRepo)),
-	wire.Bind(new(controller.UserServiceInter), new(*service.UserService)),
-	wire.Bind(new(router.UserControllerInter), new(*controller.UserController)),
+	wire.Bind(new(router.UserControllerInter), new(*controllers.Controller)),
+	wire.Bind(new(user.Repo), new(*repository.UserRepo)),
+	wire.Bind(new(controllers.UserDomain), new(*user.Domain)),
 
-	repo.NewUserRepo,
-	service.NewUserService,
-	controller.NewUserController,
+	repository.NewUserPepo,
+	user.NewDomain,
+	controllers.NewController,
 	router.NewRouter,
 	newdb,
 )

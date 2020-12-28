@@ -10,4 +10,6 @@ require (
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.3 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/tal-tech/go-zero v1.1.1
+	gopkg.in/yaml.v2 v2.4.0
 )
