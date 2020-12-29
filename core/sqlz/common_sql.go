@@ -3,6 +3,7 @@ package sqlz
 import (
 	"database/sql"
 	"github.com/gozelus/zelus_rest"
+	"github.com/gozelus/zelus_rest/logger"
 )
 
 func NewCommonSqlConn() Session {
@@ -38,7 +39,7 @@ func (db *commonSqlConn) Exec(ctx rest.Context, q string, args ...interface{}) (
 	var err error
 	conn, err = getSqlConn(db.driverName, db.datasource)
 	if err != nil {
-		//logInstanceError(db.datasource, err)
+		logger.ErrorfWithStackWithContext(ctx, "get conn err for %s", err)
 		return nil, err
 	}
 	return execContext(ctx, conn, q, args...)
@@ -49,7 +50,7 @@ func (db *commonSqlConn) QueryRows(ctx rest.Context, v interface{}, q string, ar
 	var err error
 	conn, err = getSqlConn(db.driverName, db.datasource)
 	if err != nil {
-		//logInstanceError(db.datasource, err)
+		logger.ErrorfWithStackWithContext(ctx, "get conn err for %s", err)
 		return err
 	}
 	rows, err := queryContext(ctx, conn, q, args...)
