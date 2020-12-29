@@ -1,6 +1,8 @@
 package stringz
 
-import "github.com/tal-tech/go-zero/core/lang"
+import (
+	"github.com/gozelus/zelus_rest/core/lang"
+)
 
 const defaultMask = '*'
 

@@ -3,7 +3,7 @@ package stringz
 import (
 	"errors"
 
-	"github.com/tal-tech/go-zero/core/lang"
+	"github.com/gozelus/zelus_rest/core/lang"
 )
 
 var (

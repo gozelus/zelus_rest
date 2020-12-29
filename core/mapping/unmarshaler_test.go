@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gozelus/zelus_rest/core/stringz"
 	"github.com/stretchr/testify/assert"
-	"github.com/tal-tech/go-zero/core/stringx"
 )
 
 // because json.Number doesn't support strconv.ParseUint(...),
@@ -425,7 +425,7 @@ func TestUnmarshalStructOptionalDepends(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(stringx.Rand(), func(t *testing.T) {
+		t.Run(stringz.Rand(), func(t *testing.T) {
 			m := map[string]interface{}{
 				"name": "kevin",
 				"address": map[string]interface{}{
@@ -492,7 +492,7 @@ func TestUnmarshalStructOptionalDependsNot(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(stringx.Rand(), func(t *testing.T) {
+		t.Run(stringz.Rand(), func(t *testing.T) {
 			m := map[string]interface{}{
 				"name": "kevin",
 				"address": map[string]interface{}{
@@ -642,7 +642,7 @@ func TestUnmarshalAnonymousStructOptionalDepends(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		t.Run(stringx.Rand(), func(t *testing.T) {
+		t.Run(stringz.Rand(), func(t *testing.T) {
 			m := map[string]interface{}{
 				"name": "kevin",
 				"city": "shanghai",
