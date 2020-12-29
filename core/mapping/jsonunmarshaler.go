@@ -1,6 +1,7 @@
 package mapping
 
 import (
+	"github.com/gozelus/zelus_rest/core/jsonz"
 	"io"
 )
 
