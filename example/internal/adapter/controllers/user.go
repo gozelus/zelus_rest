@@ -38,6 +38,7 @@ func (c *Controller) Register(ctx rest.Context) {
 	if err := ctx.JSONBodyBind(&req); err != nil {
 		ctx.RenderJSON(rest.StatusBadRequestResp())
 	}
+	c.user.Register(ctx, &req)
 	//if err := c.user.Register(ctx, &req); err != nil {
 	//	return rest.StatusInternalServerError
 	//}

@@ -32,5 +32,5 @@ var UserGroup = func(r *Router) []rest.Route {
 }
 
 func (r *Router) Routes() []rest.Route {
-	return UserGroup
+	return UserGroup(r)
 }
