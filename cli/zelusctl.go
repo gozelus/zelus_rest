@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/Masterminds/sprig"
 	"github.com/gozelus/zelus_rest/cli/utils"
-	_ "gorm.io/driver/mysql"
+	 "gorm.io/driver/mysql"
 	"github.com/gozelus/zelus_rest/logger"
 	"github.com/iancoleman/strcase"
 	"gorm.io/gorm"
@@ -55,7 +55,7 @@ type ApiStruct struct {
 }
 
 func GenGoModelCode(datasource, table string) error {
-	db, err := gorm.Open("mysql", datasource)
+	db ,err := gorm.Open(mysql.Open(datasource), &gorm.Config{})
 	if err != nil {
 		return err
 	}
