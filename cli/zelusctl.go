@@ -4,6 +4,13 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/Masterminds/sprig"
+	"github.com/gozelus/zelus_rest/cli/utils"
+	_ "gorm.io/driver/mysql"
+	"github.com/gozelus/zelus_rest/logger"
+	"github.com/iancoleman/strcase"
+	"gorm.io/gorm"
+	"github.com/pkg/errors"
 	goformat "go/format"
 	"html/template"
 	"io/ioutil"
@@ -45,6 +52,151 @@ type ApiStruct struct {
 	Imports    string
 	// api 服务定义的开始
 	serviceBeginLine int
+}
+
+func GenGoModelCode(datasource, table string) error {
+	db, err := gorm.Open("mysql", datasource)
+	if err != nil {
+		return err
+	}
+	//db.LogMode(true)
+	//result := Result{}
+	type Result struct {
+		Table string
+		DDL   string
+	}
+	result := Result{}
+	r := db.Raw("show create table " + table).Row()
+	if err := r.Scan(&result.Table, &result.DDL); err != nil {
+		panic(err)
+	}
+	//CREATE TABLE `users` (
+	//	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	//	`create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	//	`update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	//	`user_id` bigint(20) unsigned NOT NULL,
+	//	`nickname` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+	//	`avatar` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+	//	`sign` varchar(255) NOT NULL DEFAULT '',
+	//	PRIMARY KEY (`id`),
+	//	UNIQUE KEY `uniq_idx_user_id` (`user_id`)
+	//) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8
+	//CREATE TABLE `episode_like_relations` (
+	//	`id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+	//	`episode_id` bigint(20) unsigned NOT NULL,
+	//	`user_id` bigint(20) unsigned NOT NULL,
+	//	`create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	//	`update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	//	PRIMARY KEY (`id`),
+	//	UNIQUE KEY `uniq_idx_episode_id_user_id` (`episode_id`,`user_id`),
+	//	KEY `idx_user_id_create_time_episode_id` (`user_id`,`create_time`,`episode_id`)
+	//) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+	buffer := new(bytes.Buffer)
+	buffer.WriteString(result.DDL)
+	ddlReader := bufio.NewReader(buffer)
+
+	type Field struct {
+		Name           string
+		TagName        string
+		SmallCamelName string
+		UnderLineName  string
+		TypeName       string
+	}
+	type IdxKey struct {
+		IsPrimary bool
+		IsUniq    bool
+		Name      string
+		Fields    []*Field
+	}
+	type Table struct {
+		TableName  string
+		ModelName  string
+		PrimaryKey *Field
+		Fields     []*Field
+		IdxKey     []*IdxKey
+	}
+	tableInfo := Table{
+		TableName: table,
+		ModelName: utils.SnakeCaseToCamelCase(table),
+	}
+
+	var lineNum = 0
+	// 是否是列定义
+	fieldNameMap := map[string]*Field{} //临时存储
+	for {
+		lineNum += 1
+		line, _, err := ddlReader.ReadLine()
+		if err != nil {
+			break
+		}
+		// 跳过第一行
+		// 跳过最后一行
+		if lineNum == 1 || strings.HasPrefix(string(line), ")") {
+			continue
+		}
+		lineStr := string(line)
+		lineStr = strings.Trim(lineStr, " ")
+
+		if strings.HasPrefix(lineStr, "`") {
+			f := Field{}
+			// 空格分隔
+			infos := strings.Split(lineStr, " ")
+			f.Name = strcase.ToCamel(strings.Trim(infos[0], "`"))
+			f.SmallCamelName = strcase.ToLowerCamel(f.Name)
+			f.UnderLineName = strcase.ToSnake(f.Name)
+			//f.TagName = fmt.Sprintf("%sgorm:%s%s%s%s", "`", `"`, f.UnderLineName, `"`, "`")
+			f.TagName = "`gorm:\"123\"`"
+			if f.TypeName, err = getGolangTypeWithMysqlType(strings.Split(infos[1], "(")[0]); err != nil {
+				panic(err)
+			}
+			tableInfo.Fields = append(tableInfo.Fields, &f)
+			fieldNameMap[f.Name] = &f
+			continue
+		}
+		// 索引字段
+		// 空格分隔
+		infos := strings.Split(lineStr, " ")
+		key := IdxKey{}
+		switch infos[0] {
+		case "PRIMARY":
+			key.IsPrimary = true
+			key.IsUniq = true
+			key.Name = "primary"
+		case "UNIQUE": // 唯一索引
+			key.IsUniq = true
+			key.Name = strings.Trim(infos[2], "`")
+		case "KEY": // 普通索引
+			key.Name = strings.Trim(infos[1], "`")
+		}
+		fieldnames := infos[len(infos)-1]
+		fieldnames = getStringInBetween(fieldnames, "(", ")")
+
+		for _, s := range strings.Split(fieldnames, ",") {
+			keyname := utils.SnakeCaseToCamelCase(strings.Trim(s, "`"))
+			if field, ok := fieldNameMap[keyname]; ok {
+				key.Fields = append(key.Fields, field)
+			} else {
+				panic(errors.New("not found"))
+			}
+		}
+		if key.IsPrimary {
+			tableInfo.PrimaryKey = key.Fields[0]
+		}
+		tableInfo.IdxKey = append(tableInfo.IdxKey, &key)
+	}
+	f, err := os.Create("./models/mmmm.go")
+	if err != nil {
+		panic(err)
+	}
+	tep, err := template.New("repo").Funcs(sprig.FuncMap()).Parse(repoTpl)
+	if err != nil {
+		panic(err)
+	}
+	if err := tep.Execute(f, tableInfo); err != nil {
+		logger.Warn(err)
+	}
+	fmt.Println(tableInfo)
+	return nil
 }
 
 func GenGoCode() {
@@ -275,4 +427,53 @@ func read(r *bufio.Reader) (rune, error) {
 }
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t'
+}
+func getStringInBetween(str string, start string, end string) (result string) {
+	s := strings.Index(str, start)
+	if s == -1 {
+		return
+	}
+	s += len(start)
+	e := strings.Index(str[s:], end)
+	if e == -1 {
+		return
+	}
+	return str[s:e]
+}
+func getGolangTypeWithMysqlType(mysqlType string) (string, error) {
+	switch mysqlType {
+	case "tinyint":
+		return "int64", nil
+	case "int":
+		return "int64", nil
+	case "smallint":
+		return "int8", nil
+	case "mediumint":
+		return "int64", nil
+	case "bigint":
+		return "int64", nil
+	case "decimal":
+		return "float", nil
+	case "float":
+		return "float", nil
+	case "double":
+		return "float", nil
+	case "datetime":
+		return "time.Time", nil
+	case "time":
+		return "time.Time", nil
+	case "timestamp":
+		return "time.Time", nil
+	case "varchar":
+		return "string", nil
+	case "longtext":
+		return "string", nil
+	case "mediumtext":
+		return "string", nil
+	case "text":
+		return "string", nil
+	case "tinytext":
+		return "string", nil
+	}
+	return "", errors.New("not found with " + mysqlType)
 }

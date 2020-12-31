@@ -2,18 +2,19 @@ package main
 
 import (
 	"github.com/gozelus/zelus_rest"
-	"github.com/gozelus/zelus_rest/example/internal/controller/user"
+	_ "gorm.io/driver/mysql"
 	"log"
 	"net/http"
 )
 
 func main() {
 	s := rest.NewServer("localhost", 8080)
-	uc := user.NewController(nil)
 	if err := s.AddRoute(rest.Route{
-		Path:    "/user/create",
-		Method:  http.MethodGet,
-		Handler: uc.Register,
+		Path:   "/user/create",
+		Method: http.MethodGet,
+		Handler: func(context rest.Context) {
+
+		},
 	}); err != nil {
 		log.Fatal(err)
 	}
