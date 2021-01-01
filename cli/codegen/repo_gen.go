@@ -6,8 +6,8 @@ import (
 	"github.com/gozelus/zelus_rest/cli/tpls"
 	"github.com/gozelus/zelus_rest/logger"
 	"github.com/iancoleman/strcase"
-	"html/template"
 	"io"
+	"text/template"
 )
 
 type RepoGener struct {
@@ -36,6 +36,9 @@ import (
 		return err
 	}
 	if err := i.genRepoStruct(); err != nil {
+		return err
+	}
+	if err := i.genListFuncs(); err != nil {
 		return err
 	}
 	if err := i.genFindManyFuncs(); err != nil {
@@ -72,6 +75,39 @@ func (i *RepoGener) genRepoStruct() error {
 	})
 }
 
+func (i *RepoGener) genListFuncs() error {
+	var t *template.Template
+	var err error
+	if t, err = template.New("list fun gen").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpls.RepoListFuncTpl); err != nil {
+		return err
+	}
+	for _, idx := range i.model.Idx {
+		if !idx.IsPrimary && !idx.IsUniq && len(idx.Fields) >= 3 {
+			param := struct {
+				SelectField  *Field
+				OrderField   *Field
+				WhereFields  []*Field
+				RepoImpName  string
+				ModelName    string
+				TableName    string
+				ModelPkgName string
+			}{
+				SelectField:  idx.Fields[len(idx.Fields)-1],
+				OrderField:   idx.Fields[len(idx.Fields)-2],
+				WhereFields:  idx.Fields[:len(idx.Fields)-2],
+				ModelPkgName: "models",
+				RepoImpName:  strcase.ToCamel(i.model.ModelName + "RepoImp"),
+				ModelName:    i.model.ModelName,
+				TableName:    i.model.TableName,
+			}
+			if err := i.genFunc(t, param); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // findOne 函数
 func (i *RepoGener) genFindOneFuncs() error {
 	return i.genFuncByUniqIdx(tpls.RepoFindOneFuncTpl)
@@ -101,7 +137,7 @@ func (i *RepoGener) genUpdateFuncs() error {
 func (i *RepoGener) genInsertFunc() error {
 	var t *template.Template
 	var err error
-	if t, err = template.New("insert fun gen").Funcs(sprig.FuncMap()).Parse(tpls.RepoInsertFuncTpl); err != nil {
+	if t, err = template.New("insert fun gen").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpls.RepoInsertFuncTpl); err != nil {
 		return err
 	}
 	param := struct {
@@ -123,7 +159,7 @@ func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
 	var genFunc = func(fields []*Field) error {
 		var t *template.Template
 		var err error
-		if t, err = template.New("gen update func").Funcs(sprig.FuncMap()).Parse(tpl); err != nil {
+		if t, err = template.New("gen update func").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpl); err != nil {
 			return err
 		}
 		return i.genFunc(t, struct {

@@ -6,6 +6,26 @@ type {{.RepoImpName}} struct {
 	db *gorm.DB
 }
 `
+var RepoListFuncTpl = `
+func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}(ctx rest.Context, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
+	var resp []*{{.ModelPkgName}}.{{.ModelName}}
+	var hasMore bool
+	if err := repo.db.WithContext(ctx).Table("{{.TableName}}").
+		Select("{{.SelectField.DbName}}").{{range .WhereFields}}
+		Where("{{.DbName}} = ?", {{.LowCamelName}}).{{end}}
+		Where("{{.OrderField.DbName}} < ?", {{.OrderField.LowCamelName}}).
+		Order("{{.OrderField.DbName}} desc").
+		Limit(int(limit + 1)).
+		Find(&resp).Error; err != nil {
+		return nil, false, errors.WithStack(err)
+	}
+	hasMore = len(resp) > int(limit)
+	if hasMore {
+		resp = resp[:len(resp)-1]
+	}
+	return resp, hasMore, nil
+}
+`
 var RepoFindManyFuncTpl = `{{$firstField := first .Fields}}
 func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}{}
