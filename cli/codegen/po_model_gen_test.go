@@ -14,7 +14,7 @@ func TestPoModelStructInfo_GenCode(t *testing.T) {
 		t.Fatalf("%+v", err)
 	}
 	file2, _ := os.Create("./repos/repo.go")
-	if err := NewRepoGener(file2, m).GenCode(); err != nil {
+	if err := NewRepoGener(file2, m, "repos").GenCode(); err != nil {
 		t.Fatalf("%+v", err)
 	}
 }

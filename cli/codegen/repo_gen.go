@@ -11,21 +11,24 @@ import (
 )
 
 type RepoGener struct {
-	file  io.Writer
-	model *PoModelStructInfo
-	funcs []string
+	file    io.Writer
+	model   *PoModelStructInfo
+	funcs   []string
+	pkgName string
 }
 
-func NewRepoGener(file io.Writer, model *PoModelStructInfo) *RepoGener {
+func NewRepoGener(file io.Writer, model *PoModelStructInfo, pkgName string) *RepoGener {
 	return &RepoGener{
-		file:  file,
-		model: model,
+		file:    file,
+		model:   model,
+		pkgName: pkgName,
 	}
 }
 
 func (i *RepoGener) GenCode() error {
 	tpl := `
-package repos
+package ` + i.pkgName + `
+
 import (
 	"github.com/pkg/errors"
 	"github.com/gozelus/zelus_rest"
@@ -84,6 +87,7 @@ func (i *RepoGener) genListFuncs() error {
 	for _, idx := range i.model.Idx {
 		if !idx.IsPrimary && !idx.IsUniq && len(idx.Fields) >= 3 {
 			param := struct {
+				IdxName      string
 				SelectField  *Field
 				OrderField   *Field
 				WhereFields  []*Field
@@ -92,6 +96,7 @@ func (i *RepoGener) genListFuncs() error {
 				TableName    string
 				ModelPkgName string
 			}{
+				IdxName:      idx.Name,
 				SelectField:  idx.Fields[len(idx.Fields)-1],
 				OrderField:   idx.Fields[len(idx.Fields)-2],
 				WhereFields:  idx.Fields[:len(idx.Fields)-2],
@@ -156,19 +161,22 @@ func (i *RepoGener) genInsertFunc() error {
 
 // genFunByUniqIdx 根据唯一索引生成
 func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
-	var genFunc = func(fields []*Field) error {
+	var genFunc = func(idx *Idx) error {
 		var t *template.Template
 		var err error
 		if t, err = template.New("gen update func").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpl); err != nil {
 			return err
 		}
+		fields := idx.Fields
 		return i.genFunc(t, struct {
+			IdxName      string
 			Fields       []*Field
 			RepoImpName  string
 			TableName    string
 			ModelName    string
 			ModelPkgName string
 		}{
+			IdxName:      idx.Name,
 			ModelPkgName: "models",
 			ModelName:    strcase.ToCamel(i.model.ModelName),
 			TableName:    i.model.TableName,
@@ -182,7 +190,7 @@ func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
 			if !idx.IsPrimary {
 				continue
 			}
-			if err := genFunc(idx.Fields); err != nil {
+			if err := genFunc(idx); err != nil {
 				return err
 			}
 			return nil
@@ -191,7 +199,7 @@ func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
 			// 寻找联合索引or主键
 			if len(onlyPrimary) > 0 {
 			} else {
-				if err := genFunc(idx.Fields); err != nil {
+				if err := genFunc(idx); err != nil {
 					return err
 				}
 			}

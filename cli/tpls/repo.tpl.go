@@ -7,6 +7,7 @@ type {{.RepoImpName}} struct {
 }
 `
 var RepoListFuncTpl = `
+// List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}} 根据索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}(ctx rest.Context, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	var hasMore bool
@@ -27,6 +28,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 }
 `
 var RepoFindManyFuncTpl = `{{$firstField := first .Fields}}
+// FindManyWith{{$firstField.Name}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}{}
 	var results []*{{.ModelPkgName}}.{{.ModelName}}
@@ -42,6 +44,7 @@ func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context,
 }`
 
 var RepoFirstOrCreateFuncTpl = `
+// FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} data *{{.ModelPkgName}}.{{.ModelName}}) error { 
 	resp := data {{$lastName := (last .Fields).Name}}
 	db := repo.db.WithContext(ctx).Table("{{$.TableName}}").{{range $i, $field := .Fields}}
@@ -53,6 +56,7 @@ func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}
 } 
 `
 var RepoFindOneFuncTpl = `
+// FindOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
 	db := repo.db.WithContext(ctx).Table("{{$.TableName}}").{{range $i, $field := .Fields}}
@@ -64,6 +68,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx r
 }
 `
 var RepoDeleteFuncTpl = `{{$lastName := (last .Fields).Name}}
+// DeleteOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) error { 
 	db := repo.db.WithContext(ctx).Table("{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -74,6 +79,7 @@ func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 } 
 `
 var RepoUpdateFuncTpl = `{{$lastName := (last .Fields).Name}}
+// UpdateOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} attr map[string]interface{}) error { 
 	db := repo.db.WithContext(ctx).Table("{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -84,6 +90,7 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 } 
 `
 var RepoInsertFuncTpl = `
+// Insert 默认生成的创建函数
 func (repo *{{.RepoImpName}}) Insert(ctx rest.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := repo.db.WithContext(ctx).Table("{{.TableName}}").Create(data).Error;err!=nil{
 		return errors.WithStack(err)
