@@ -1,7 +1,8 @@
 package actions
 
 import (
-	"github.com/gozelus/zelus_rest/logger"
+	"fmt"
+	"github.com/fatih/color"
 	"os/exec"
 )
 
@@ -9,6 +10,6 @@ func logFinishAndFmt(dirPath string) error {
 	if err := exec.Command("goimports", "-w", dirPath).Run(); err != nil {
 		return err
 	}
-	logger.Infof("%s done", dirPath)
+	fmt.Println(color.HiGreenString("the file : %s done \n", dirPath))
 	return nil
 }

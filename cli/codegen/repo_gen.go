@@ -2,9 +2,11 @@ package codegen
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/fatih/color"
+
 	"github.com/Masterminds/sprig"
 	"github.com/gozelus/zelus_rest/cli/tpls"
-	"github.com/gozelus/zelus_rest/logger"
 	"github.com/iancoleman/strcase"
 	"io"
 	"text/template"
@@ -214,7 +216,8 @@ func (i *RepoGener) genFunc(t *template.Template, param interface{}) error {
 	if err := t.Execute(funcStrBuilder, param); err != nil {
 		return err
 	}
-	logger.Debugf("will gen func : %s", funcStrBuilder.String())
+
+	fmt.Println(color.HiGreenString("will gen func : %s", funcStrBuilder.String()))
 
 	i.funcs = append(i.funcs, funcStrBuilder.String())
 

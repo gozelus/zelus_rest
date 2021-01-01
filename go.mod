@@ -27,6 +27,7 @@ require (
 	github.com/tebeka/strftime v0.1.5 // indirect
 	github.com/urfave/cli v1.22.5
 	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
+	golang.org/x/tools v0.0.0-20190422233926-fe54fb35175b
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.0.3
 	gorm.io/gorm v1.20.9
