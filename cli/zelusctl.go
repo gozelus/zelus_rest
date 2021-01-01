@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/Masterminds/sprig"
-	"github.com/gozelus/zelus_rest/cli/utils"
 	 "gorm.io/driver/mysql"
 	"github.com/gozelus/zelus_rest/logger"
 	"github.com/iancoleman/strcase"
