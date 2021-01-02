@@ -2,6 +2,7 @@ package repos
 
 import (
 	rest "github.com/gozelus/zelus_rest"
+	"github.com/gozelus/zelus_rest/example/internal/data/db"
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 )
