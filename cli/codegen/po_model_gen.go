@@ -19,6 +19,7 @@ type Field struct {
 	LowCamelName  string
 	DbName        string
 	MySQLTypeName string
+	Comment       string
 }
 
 type Idx struct {
@@ -31,13 +32,13 @@ type Idx struct {
 type PoModelStructInfo struct {
 	ddl string
 
-	Imports     []string
-	PackageName string
-	ModelName   string
-	TableName   string
-	Fields      []*Field
-	FieldsMap   map[string]*Field
-	Idx         []*Idx
+	TableComment string
+	PackageName  string
+	ModelName    string
+	TableName    string
+	Fields       []*Field
+	FieldsMap    map[string]*Field
+	Idx          []*Idx
 }
 
 func (m *PoModelStructInfo) GenCode(file io.Writer) error {
@@ -49,11 +50,6 @@ func (m *PoModelStructInfo) GenCode(file io.Writer) error {
 		return err
 	}
 	if err := t.Execute(file, m); err != nil {
-		return err
-	}
-
-	// gen import
-	if t, err = template.New("import").Parse(tpls.ModelImportTpl); err != nil {
 		return err
 	}
 
@@ -81,12 +77,14 @@ func NewPoModelStructInfo(tableName string, datasource string, packageName strin
 		panic(err)
 	}
 	m := &PoModelStructInfo{
-		Imports:     []string{"time"},
 		FieldsMap:   map[string]*Field{},
 		TableName:   tableName,
 		ddl:         result.DDL,
 		ModelName:   strcase.ToCamel(tableName + "Model"),
 		PackageName: packageName,
+	}
+	if err = m.initTableComment(); err != nil {
+		panic(err)
 	}
 	if err = m.initFields(); err != nil {
 		panic(err)
@@ -147,6 +145,31 @@ func (m *PoModelStructInfo) initIndexs() error {
 	}
 }
 
+func (m *PoModelStructInfo) initTableComment() error {
+	buffer := new(bytes.Buffer)
+	buffer.WriteString(m.ddl)
+	ddlReader := bufio.NewReader(buffer)
+	var lineNum int
+	for {
+		var err error
+		lineStr, _, err := ddlReader.ReadLine()
+		lineNum++
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		if strings.Contains(string(lineStr), ") ENGINE=") {
+			// end line
+			keys := strings.Split(string(lineStr), "'")
+			m.TableComment = keys[len(keys)-2]
+			return nil
+		}
+	}
+	return nil
+}
+
 // 初始化 fields 字段
 func (m *PoModelStructInfo) initFields() error {
 	buffer := new(bytes.Buffer)
@@ -176,6 +199,13 @@ func (m *PoModelStructInfo) initFields() error {
 		f.MySQLTypeName = strings.Split(keys[1], "(")[0] // 类型名
 		f.LowCamelName = strcase.ToLowerCamel(f.DbName)
 		f.Name = strcase.ToCamel(f.DbName)
+
+		// 找到备注
+		for i, key := range keys {
+			if key == "COMMENT" {
+				f.Comment = strings.ReplaceAll(strings.ReplaceAll(keys[i+1], "'", ""), ",", "")
+			}
+		}
 		if f.TypeName, err = getGolangTypeWithMysqlType(f.MySQLTypeName); err != nil {
 			return err
 		}
