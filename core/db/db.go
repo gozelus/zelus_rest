@@ -19,7 +19,7 @@ type dbImp struct {
 }
 
 func (d *dbImp) Table(ctx rest.Context, name string) whereSQL {
-	d.db = d.db.WithContext(ctx).Table(name)
+	d.db = d.db.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Table(name)
 	w := &whereSQLImp{db:d.db}
 	d.whereSQLImp = w
 	return d.whereSQLImp

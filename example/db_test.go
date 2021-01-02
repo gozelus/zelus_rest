@@ -3,6 +3,7 @@ package example
 import (
 	db2 "github.com/gozelus/zelus_rest/core/db"
 	"github.com/gozelus/zelus_rest/example/internal/data/db"
+	"sync"
 	"testing"
 )
 
@@ -11,9 +12,17 @@ func TestGormStatement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	u := models.UsersModel{}
-	if err := db.Table(nil, "users").Where("id = ?", 17).Find(&u); err != nil {
-		t.Fatal(err)
+	var wg sync.WaitGroup
+	for i := 10 ; i < 20 ; i ++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			u := models.UsersModel{}
+			if err := db.Table(nil, "users").Where("id = ?", i).Find(&u); err != nil {
+				t.Fatal(err)
+			}
+			t.Log(u.Nickname)
+		}(i)
 	}
-	t.Log(u.Nickname)
+	wg.Wait()
 }
