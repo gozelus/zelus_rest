@@ -2,21 +2,22 @@ package repos
 
 import (
 	rest "github.com/gozelus/zelus_rest"
+	"github.com/gozelus/zelus_rest/core/db"
+	models "github.com/gozelus/zelus_rest/example/internal/data/db"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 )
 
 type EpisodeCountersModelRepoImp struct {
-	db *gorm.DB
+	db db.MySQLDb
 }
 
 // FindManyWithId 根据唯一索引 PRIMARY 生成
 func (repo *EpisodeCountersModelRepoImp) FindManyWithId(ctx rest.Context, ids []int64) (map[int64]*models.EpisodeCountersModel, error) {
 	resp := map[int64]*models.EpisodeCountersModel{}
 	var results []*models.EpisodeCountersModel
-	db := repo.db.WithContext(ctx).Table("episode_counters").
+	db := repo.db.Table(ctx, "episode_counters").
 		Where("id in (?)", ids)
-	if err := db.Find(&results).Error; err != nil {
+	if err := db.Find(&results); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	for _, r := range results {
@@ -28,20 +29,20 @@ func (repo *EpisodeCountersModelRepoImp) FindManyWithId(ctx rest.Context, ids []
 // FindOneWithId 根据唯一索引 PRIMARY 生成
 func (repo *EpisodeCountersModelRepoImp) FindOneWithId(ctx rest.Context, id int64) (*models.EpisodeCountersModel, error) {
 	resp := &models.EpisodeCountersModel{}
-	db := repo.db.WithContext(ctx).Table("episode_counters").
+	db := repo.db.Table(ctx, "episode_counters").
 		Where("id = ?", id)
-	if err := db.First(resp).Error; err != nil {
+	if err := db.First(resp); err != nil {
 		return nil, errors.WithStack(err)
 	}
 	return resp, nil
 }
 
-// FirstOrCreateWithId 根据唯一索引 PRIMARY 生成
+// FirstOrInsertWithId 根据唯一索引 PRIMARY 生成
 func (repo *EpisodeCountersModelRepoImp) FirstOrCreateWithId(ctx rest.Context, id int64, data *models.EpisodeCountersModel) error {
 	resp := data
-	db := repo.db.WithContext(ctx).Table("episode_counters").
+	db := repo.db.Table(ctx, "episode_counters").
 		Where("id = ?", id)
-	if err := db.FirstOrCreate(resp).Error; err != nil {
+	if err := db.FirstOrCreate(resp); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
@@ -49,9 +50,9 @@ func (repo *EpisodeCountersModelRepoImp) FirstOrCreateWithId(ctx rest.Context, i
 
 // DeleteOneWithId 根据唯一索引 PRIMARY 生成
 func (repo *EpisodeCountersModelRepoImp) DeleteOneWithId(ctx rest.Context, id int64) error {
-	db := repo.db.WithContext(ctx).Table("episode_counters").
+	db := repo.db.Table(ctx, "episode_counters").
 		Where("id = ?", id)
-	if err := db.Delete(models.EpisodeCountersModel{}).Error; err != nil {
+	if err := db.Delete(models.EpisodeCountersModel{}); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
@@ -59,9 +60,9 @@ func (repo *EpisodeCountersModelRepoImp) DeleteOneWithId(ctx rest.Context, id in
 
 // UpdateOneWithId 根据唯一索引 PRIMARY 生成
 func (repo *EpisodeCountersModelRepoImp) UpdateOneWithId(ctx rest.Context, id int64, attr map[string]interface{}) error {
-	db := repo.db.WithContext(ctx).Table("episode_counters").
+	db := repo.db.Table(ctx, "episode_counters").
 		Where("id = ?", id)
-	if err := db.Updates(attr).Error; err != nil {
+	if err := db.Updates(attr); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil
@@ -69,7 +70,7 @@ func (repo *EpisodeCountersModelRepoImp) UpdateOneWithId(ctx rest.Context, id in
 
 // Insert 默认生成的创建函数
 func (repo *EpisodeCountersModelRepoImp) Insert(ctx rest.Context, data *models.EpisodeCountersModel) error {
-	if err := repo.db.WithContext(ctx).Table("episode_counters").Create(data).Error; err != nil {
+	if err := repo.db.Table(ctx, "episode_counters").Insert(data); err != nil {
 		return errors.WithStack(err)
 	}
 	return nil

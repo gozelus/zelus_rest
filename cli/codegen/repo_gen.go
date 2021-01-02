@@ -144,7 +144,7 @@ func (i *RepoGener) genUpdateFuncs() error {
 func (i *RepoGener) genInsertFunc() error {
 	var t *template.Template
 	var err error
-	if t, err = template.New("insert fun gen").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpls.RepoInsertFuncTpl); err != nil {
+	if t, err = template.New("insert fun gen").Funcs(sprig.HermeticTxtFuncMap()).Parse(tpls.RepoCreateFuncTpl); err != nil {
 		return err
 	}
 	param := struct {
