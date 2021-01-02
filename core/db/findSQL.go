@@ -1,6 +1,9 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"github.com/gozelus/zelus_rest"
+	"gorm.io/gorm"
+)
 
 type findSQL interface {
 	Find(dest interface{}) error
@@ -13,5 +16,14 @@ type findSQLImp struct {
 }
 
 func (f *findSQLImp) Find(dest interface{}) error {
-	return f.db.Find(dest).Error
+	// 新建一个 Session 用于构建 SQL
+	db := f.db.Session(&gorm.Session{DryRun: true})
+	stmt := db.Find(dest).Statement
+	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
+	ctx := f.db.Statement.Context.(rest.Context)
+
+	return exec(ctx, sql, func() (int64, error) {
+		result := f.db.Find(dest)
+		return result.RowsAffected, result.Error
+	})
 }

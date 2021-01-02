@@ -1,6 +1,7 @@
 package db
 
 import (
+	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +14,17 @@ type updateSQLImp struct {
 }
 
 func (u *updateSQLImp) Updates(attrs map[string]interface{}) error {
-	return u.db.Updates(attrs).Error
+	// 新建一个 Session 用于构建 SQL
+	db := u.db.Session(&gorm.Session{DryRun: true})
+	stmt := db.Updates(attrs).Statement
+	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
+	ctx := u.db.Statement.Context.(rest.Context)
+
+	return exec(ctx, sql, func() (int64, error) {
+		result := u.db.Updates(attrs)
+		return result.RowsAffected, result.Error
+	})
+
 }
 
 var _ updateSQL = &updateSQLImp{}

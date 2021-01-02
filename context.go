@@ -150,9 +150,8 @@ func (c *contextImp) abort() {
 }
 func (c *contextImp) renderJSON(code int, obj interface{}) error {
 	defer c.abort()
+	c.resWriter.Header().Add("Content-Type", "application/json; charset=utf-8")
 	c.resWriter.WriteHeader(code)
-	header := c.resWriter.Header()
-	header["Content-Type"] = []string{"application/javascript; charset=utf-8"}
 	jsonBytes, err := json.Marshal(obj)
 	if err != nil {
 		return err
