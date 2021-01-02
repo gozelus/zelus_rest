@@ -5,4 +5,6 @@ type endSQL interface {
 	insertSQL
 	findSQL
 	deleteSQL
+	firstSQL
+	firstOrCreateSQL
 }

@@ -50,7 +50,7 @@ func main() {
 			u := User{}
 			var _ rest.Rsp = &User{}
 			context.JSONQueryBind(&u)
-			d.Table(context, "users").Where("id = ?", u.ID).Find(&u)
+			d.Table(context, "users").Where("id = ?", u.ID).Order("id desc").Limit(10).Find(&u)
 			context.RenderJSON(&u)
 		},
 	}); err != nil {
