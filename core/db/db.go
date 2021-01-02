@@ -11,6 +11,7 @@ type MySQLDb interface {
 	Table(ctx rest.Context, name string) interface {
 		whereSQL
 		insertSQL
+		selectSQL
 	}
 }
 
@@ -20,13 +21,16 @@ type dbImp struct {
 	db *gorm.DB
 	*whereSQLImp
 	*insertSQLImp
+	*selectSQLImp
 }
 
 func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	insertSQL
+	selectSQL
 	whereSQL
 } {
 	d.db = d.db.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Table(name)
+	d.selectSQLImp = &selectSQLImp{db: d.db}
 	d.whereSQLImp = &whereSQLImp{db: d.db}
 	d.insertSQLImp = &insertSQLImp{db: d.db}
 	return d
