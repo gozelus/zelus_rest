@@ -163,7 +163,9 @@ func (m *PoModelStructInfo) initTableComment() error {
 		if strings.Contains(string(lineStr), ") ENGINE=") {
 			// end line
 			keys := strings.Split(string(lineStr), "'")
-			m.TableComment = keys[len(keys)-2]
+			if len(keys) >= 3 { // 找到注释
+				m.TableComment = keys[len(keys)-2]
+			}
 			return nil
 		}
 	}

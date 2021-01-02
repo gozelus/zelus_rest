@@ -27,14 +27,18 @@ func GenModel(ctx *cli.Context) error {
 	if dirAbsPath, err = mkdirIfNotExist(dir); err != nil {
 		return err
 	}
-	if file, err = os.Create(dirAbsPath + "/" + pattern + "_model.go"); err != nil {
-		return err
-	}
 
-	m := codegen.NewPoModelStructInfo(pattern, url, pkg)
-
-	if err = m.GenCode(file); err == nil {
-		return logFinishAndFmt(dirAbsPath)
+	for _, table := range strings.Split(pattern, ",") {
+		if file, err = os.Create(dirAbsPath + "/" + table + "_model.go"); err != nil {
+			return err
+		}
+		m := codegen.NewPoModelStructInfo(table, url, pkg)
+		if err = m.GenCode(file); err != nil {
+			return err
+		}
+		if err := logFinishAndFmt(file.Name());err!=nil{
+			return err
+		}
 	}
-	return err
+	return nil
 }
