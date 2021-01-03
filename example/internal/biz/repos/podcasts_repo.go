@@ -11,6 +11,10 @@ type PodcastsModelRepoImp struct {
 	db db.MySQLDb
 }
 
+func NewPodcastsModelRepoImp(db db.MySQLDb) *PodcastsModelRepoImp {
+	return &PodcastsModelRepoImp{db: db}
+}
+
 // FindManyWithIdByTx 根据唯一索引 PRIMARY 生成
 func (repo *PodcastsModelRepoImp) FindManyWithIdByTx(ctx rest.Context, tx db.MySQLDb, ids []int64) (map[int64]*models.PodcastsModel, error) {
 	resp := map[int64]*models.PodcastsModel{}

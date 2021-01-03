@@ -13,6 +13,10 @@ type LikeEpisodeUserRelationsModelRepoImp struct {
 	db db.MySQLDb
 }
 
+func NewLikeEpisodeUserRelationsModelRepoImp(db db.MySQLDb) *LikeEpisodeUserRelationsModelRepoImp {
+	return &LikeEpisodeUserRelationsModelRepoImp{db: db}
+}
+
 // ListEpisodeIdByUserIdOrderByCreateTimeByTx 根据索引 idx_user_id_create_time_episode_id 生成
 func (repo *LikeEpisodeUserRelationsModelRepoImp) ListEpisodeIdByUserIdOrderByCreateTimeByTx(ctx rest.Context, tx db.MySQLDb, userId int64, limit int64, createTime time.Time) ([]*models.LikeEpisodeUserRelationsModel, bool, error) {
 	var resp []*models.LikeEpisodeUserRelationsModel

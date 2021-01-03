@@ -13,6 +13,10 @@ type SubPodcastUserRelationsModelRepoImp struct {
 	db db.MySQLDb
 }
 
+func NewSubPodcastUserRelationsModelRepoImp(db db.MySQLDb) *SubPodcastUserRelationsModelRepoImp {
+	return &SubPodcastUserRelationsModelRepoImp{db: db}
+}
+
 // ListPodcastIdByUserIdOrderByCreateTimeByTx 根据索引 idx_user_id_create_time_podcast_id 生成
 func (repo *SubPodcastUserRelationsModelRepoImp) ListPodcastIdByUserIdOrderByCreateTimeByTx(ctx rest.Context, tx db.MySQLDb, userId int64, limit int64, createTime time.Time) ([]*models.SubPodcastUserRelationsModel, bool, error) {
 	var resp []*models.SubPodcastUserRelationsModel

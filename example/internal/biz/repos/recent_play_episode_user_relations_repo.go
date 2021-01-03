@@ -13,6 +13,10 @@ type RecentPlayEpisodeUserRelationsModelRepoImp struct {
 	db db.MySQLDb
 }
 
+func NewRecentPlayEpisodeUserRelationsModelRepoImp(db db.MySQLDb) *RecentPlayEpisodeUserRelationsModelRepoImp {
+	return &RecentPlayEpisodeUserRelationsModelRepoImp{db: db}
+}
+
 // ListEpisodeIdByUserIdOrderByCreateTimeByTx 根据索引 idx_user_id_target_type_create_time_target_id 生成
 func (repo *RecentPlayEpisodeUserRelationsModelRepoImp) ListEpisodeIdByUserIdOrderByCreateTimeByTx(ctx rest.Context, tx db.MySQLDb, userId int64, limit int64, createTime time.Time) ([]*models.RecentPlayEpisodeUserRelationsModel, bool, error) {
 	var resp []*models.RecentPlayEpisodeUserRelationsModel

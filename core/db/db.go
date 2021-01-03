@@ -13,6 +13,11 @@ type MySQLDb interface {
 		insertSQL
 		selectSQL
 	}
+	Begin() interface {
+		MySQLDb
+		Rollback()
+		Commit()
+	}
 }
 
 var _ MySQLDb = &dbImp{}
@@ -22,6 +27,20 @@ type dbImp struct {
 	*whereSQLImp
 	*insertSQLImp
 	*selectSQLImp
+}
+
+func (d *dbImp) Commit() {
+	d.db.Commit()
+}
+func (d *dbImp) Rollback() {
+	d.db.Rollback()
+}
+func (d *dbImp) Begin() interface {
+	MySQLDb
+	Rollback()
+	Commit()
+} {
+	return &dbImp{db: d.db.Begin()}
 }
 
 func (d *dbImp) Table(ctx rest.Context, name string) interface {

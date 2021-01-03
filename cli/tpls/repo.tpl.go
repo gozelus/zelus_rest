@@ -1,6 +1,9 @@
 package tpls
 
-var RepoInterfaceTpl = ``
+var RepoNewFuncTpl = `
+func New{{.RepoImpName}}(db db.MySQLDb) *{{.RepoImpName}} {
+	return &{{.RepoImpName}}{db: db}
+}`
 var RepoStructTpl = `
 type {{.RepoImpName}} struct {
 	db db.MySQLDb

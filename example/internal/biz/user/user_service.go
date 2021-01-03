@@ -29,5 +29,5 @@ func (u *UserService) RegisterOrLogin(ctx rest.Context, phone, code string) erro
 }
 
 func (UserService) SendPhoneCode(ctx rest.Context, phone string) error {
-	panic("implement me")
+	return nil
 }

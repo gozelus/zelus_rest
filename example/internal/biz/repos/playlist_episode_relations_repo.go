@@ -13,6 +13,10 @@ type PlaylistEpisodeRelationsModelRepoImp struct {
 	db db.MySQLDb
 }
 
+func NewPlaylistEpisodeRelationsModelRepoImp(db db.MySQLDb) *PlaylistEpisodeRelationsModelRepoImp {
+	return &PlaylistEpisodeRelationsModelRepoImp{db: db}
+}
+
 // ListEpisodeIdByPlaylistIdOrderByCreateTimeByTx 根据索引 idx_playlist_id_create_time_episode_id 生成
 func (repo *PlaylistEpisodeRelationsModelRepoImp) ListEpisodeIdByPlaylistIdOrderByCreateTimeByTx(ctx rest.Context, tx db.MySQLDb, playlistId int64, limit int64, createTime time.Time) ([]*models.PlaylistEpisodeRelationsModel, bool, error) {
 	var resp []*models.PlaylistEpisodeRelationsModel

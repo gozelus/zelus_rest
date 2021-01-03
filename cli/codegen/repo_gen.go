@@ -43,6 +43,9 @@ import (
 	if err := i.genRepoStruct(); err != nil {
 		return err
 	}
+	if err := i.genNewFunc(); err != nil {
+		return err
+	}
 	if err := i.genListFuncs(); err != nil {
 		return err
 	}
@@ -65,6 +68,18 @@ import (
 		return err
 	}
 	return nil
+}
+
+func (i *RepoGener) genNewFunc() error {
+	t, err := template.New("repo new func define").Parse(tpls.RepoNewFuncTpl)
+	if err != nil {
+		return err
+	}
+	return t.Execute(i.file, struct {
+		RepoImpName string
+	}{
+		RepoImpName: strcase.ToCamel(i.model.ModelName + "RepoImp"),
+	})
 }
 
 // genRepoStruct 生成repo struct
