@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/gozelus/zelus_rest/core/bindding"
 	"io"
 	"math"
 	"net/http"
@@ -163,8 +164,13 @@ func (c *contextImp) JSONQueryBind(ptr interface{}) error {
 			form[k] = v[0]
 		}
 	}
-	bytes, _ := json.Marshal(form)
-	return json.Unmarshal(bytes, ptr)
+	if err := binding.Query.Bind(c.request, ptr); err != nil {
+		return err
+	}
+	if err := c.validate.Struct(ptr); err != nil {
+		return err
+	}
+	return nil
 }
 
 // private func
