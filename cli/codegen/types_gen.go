@@ -89,11 +89,11 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 				}
 			}
 			documentStack = []string{}
+			// empty fields
+			lastType.Fields = []*Field{}
 			continue
 		}
 		if len(lineStr) > 0 && typeDefineBegin {
-			// empty fields
-			lastType.Fields = []*Field{}
 			lineStr = strings.TrimLeft(lineStr, " ")
 			keys := strings.Split(lineStr, " ")
 			if len(keys) < 3 {
