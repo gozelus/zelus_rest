@@ -82,7 +82,7 @@ type Plugin struct {
 func NewServer(port int, opts ...Option) Server {
 	server := &serverImp{
 		httpServer: &http.Server{
-			Addr: fmt.Sprintf("%s:%d", "localhost", port),
+			Addr: fmt.Sprintf("%s:%d", "0.0.0.0", port),
 		},
 		enginez: newEnginez(),
 	}
