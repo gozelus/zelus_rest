@@ -21,7 +21,7 @@ func (c *{{ $.Name }}Controller) {{ .Name }}(ctx rest.Context) {
 	res := &{{ $.TypesPkgName }}.{{ .ResponseType }}{}
 	req := &{{ $.TypesPkgName }}.{{ .RequestType }}{}
 	var err error 
-	if err := ctx.{{if eq .Method "GET" }}JSONBodyBind{{ else }}JSONQueryBind{{ end }}(req); err != nil {
+	if err := ctx.{{if ne .Method "GET" }}JSONBodyBind{{ else }}JSONQueryBind{{ end }}(req); err != nil {
 		ctx.RenderErrorJSON(nil, apiErrors.BadRequest.WithReason(err.Error()))
 		return
 	}
