@@ -41,10 +41,10 @@ func GenApis(ctx *cli.Context) error {
 	}
 
 	varsFile, err := os.Create(filepath.Join(dir, "vars.go"))
-	fmt.Println(color.GreenString("%s create", filepath.Join(dir, "vars.go")))
 	if err != nil {
 		return err
 	}
+	fmt.Println(color.GreenString("%s create", filepath.Join(dir, "vars.go")))
 	if err = codegen.NewTypesInfo(varsFile, apiFileMerge, "api").GenCode(); err != nil {
 		return err
 	}
