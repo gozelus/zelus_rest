@@ -60,13 +60,15 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 }
 func (c *contextImp) RenderOkJSON(data interface{}) {
 	_ = c.renderJSON(http.StatusOK, struct {
-		Code    int         `json:"code"`
-		Message string      `json:"message"`
-		Data    interface{} `json:"data"`
+		Code      int         `json:"code"`
+		Message   string      `json:"message"`
+		RequestID string      `json:"request_id"`
+		Data      interface{} `json:"data"`
 	}{
-		Code:    200,
-		Message: "success",
-		Data:    data,
+		Code:      200,
+		Message:   "success",
+		Data:      data,
+		RequestID: c.GetRequestID(),
 	})
 }
 
@@ -81,13 +83,15 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	}
 	c.err = theError
 	_ = c.renderJSON(theError.GetCode(), struct {
-		Code    int         `json:"code"`
-		Message string      `json:"message"`
-		Data    interface{} `json:"data"`
+		Code      int         `json:"code"`
+		Message   string      `json:"message"`
+		Data      interface{} `json:"data"`
+		RequestID string      `json:"request_id"`
 	}{
-		Code:    theError.GetCode(),
-		Message: theError.GetMessage(),
-		Data:    data,
+		Code:      theError.GetCode(),
+		Message:   theError.GetMessage(),
+		Data:      data,
+		RequestID: c.GetRequestID(),
 	})
 }
 
