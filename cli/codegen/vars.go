@@ -7,7 +7,6 @@ type SingleIDGetRequest struct {
 
 
 type SingleIDGetResponse struct { 
-  	u *User `json:"user"`  
 }
 
 // 批量获取唯一id
