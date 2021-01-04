@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"github.com/fatih/color"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -22,22 +25,57 @@ type handler struct {
 }
 type ControllerGenner struct {
 	readerFiler io.Reader
-	Group       map[string]map[string]*controller
 	reader      io.Reader
 	writer      io.Writer
+	genPath     string
+
+	Group map[string]map[string]*controller
 }
 
-func NewControllerGenner(file io.Reader, writer io.Writer) *ControllerGenner {
-	return &ControllerGenner{writer: writer, reader: file, Group: map[string]map[string]*controller{}}
+func NewControllerGenner(file io.Reader, genPath string) *ControllerGenner {
+	return &ControllerGenner{genPath: genPath, reader: file, Group: map[string]map[string]*controller{}}
 }
 
 func (c *ControllerGenner) GenCode() error {
 	if err := c.initHandlers(); err != nil {
 		return err
 	}
+	if err := c.initDir(); err != nil {
+		return err
+	}
 	return nil
 }
 
+func (c *ControllerGenner) initDir() error {
+	for group, controllerMap := range c.Group {
+		path := filepath.Join(c.genPath, group)
+		_, err := os.Stat(path)
+		if err == nil {
+			fmt.Println(color.GreenString("%s exist, will remove and recreate", path))
+			if err := os.Remove(path); err != nil {
+				return err
+			}
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
+				return err
+			}
+		}
+		if os.IsNotExist(err) {
+			fmt.Println(color.GreenString("%s not exist, will recreate", path))
+			if err := os.MkdirAll(path, os.ModePerm); err != nil {
+				return err
+			}
+		}
+		for _, controller := range controllerMap {
+			filename := filepath.Join(path, controller.Name+"_controller.go")
+			_, err := os.Create(filename)
+			if err != nil {
+				return err
+			}
+			fmt.Println(color.GreenString("%s created", filename))
+		}
+	}
+	return nil
+}
 func (c *ControllerGenner) initHandlers() error {
 	reader := bufio.NewReader(c.reader)
 	var lineNum int

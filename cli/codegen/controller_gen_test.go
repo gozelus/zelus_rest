@@ -1,9 +1,8 @@
 package codegen
 
 import (
-	"bytes"
-	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
@@ -15,10 +14,16 @@ func TestGen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	w := bytes.NewBufferString("")
-	err = NewControllerGenner(apiReader, w).GenCode()
+	baseDir := "/Users/zhengli/workspace/private/projects/zelus_rest/cli/codegen/api"
+	err = NewControllerGenner(apiReader, baseDir).GenCode()
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(w.String())
+	varsFile, err := os.Create(filepath.Join(baseDir, "vars.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := NewTypesInfo(varsFile, apiReader, "api").GenCode(); err != nil {
+		t.Fatal(err)
+	}
 }

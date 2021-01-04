@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 	"text/template"
 
@@ -21,12 +20,12 @@ type TypeInfo struct {
 type TypesGenner struct {
 	Types []*TypeInfo
 
-	apiFile *os.File
+	apiFile io.Reader
 	pkgName string
-	write   *os.File
+	write   io.Writer
 }
 
-func NewTypesInfo(writeFile, apiFile *os.File, pkgName string) *TypesGenner {
+func NewTypesInfo(writeFile io.Writer, apiFile io.Reader, pkgName string) *TypesGenner {
 	return &TypesGenner{apiFile: apiFile, write: writeFile, pkgName: pkgName}
 }
 
@@ -39,10 +38,10 @@ func (t *TypesGenner) GenCode() (err error) {
 	}
 	var temp *template.Template
 	if temp, err = template.New("types gen tpl").Parse(tpls.TypesTpl); err != nil {
-		return
+		return err
 	}
 	if err = temp.Execute(t.write, t); err != nil {
-		return
+		return err
 	}
 	return nil
 }
@@ -53,6 +52,7 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 	var documentStack []string
 	var lineNum int
 	var lastType = &TypeInfo{}
+	var typeDefineBegin bool
 	for {
 		lineBytes, _, err := reader.ReadLine()
 		if err != nil && !errors.Is(err, io.EOF) {
@@ -69,11 +69,13 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		}
 		if strings.HasPrefix(lineStr, "type") {
 			// new a field
+			typeDefineBegin = true
 			lastType.TypeName = strings.Split(lineStr, " ")[1]
 			continue
 		}
-		if strings.HasPrefix(lineStr, "}") {
+		if strings.HasPrefix(lineStr, "}") && typeDefineBegin {
 			// end a type define
+			typeDefineBegin = false
 			newT := &TypeInfo{
 				TypeName: lastType.TypeName,
 				Fields:   lastType.Fields,
@@ -89,7 +91,7 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 			documentStack = []string{}
 			continue
 		}
-		if len(lineStr) > 0 {
+		if len(lineStr) > 0 && typeDefineBegin {
 			// empty fields
 			lastType.Fields = []*Field{}
 			lineStr = strings.TrimLeft(lineStr, " ")
