@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/fatih/color"
+	"github.com/gozelus/zelus_rest/cli/tpls"
+	"github.com/iancoleman/strcase"
+	"html/template"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,6 +17,7 @@ import (
 type controller struct {
 	Name     string
 	Handlers []*handler
+	PkgName  string
 }
 type handler struct {
 	method       string
@@ -52,7 +56,7 @@ func (c *ControllerGenner) initDir() error {
 		_, err := os.Stat(path)
 		if err == nil {
 			fmt.Println(color.GreenString("%s exist, will remove and recreate", path))
-			if err := os.Remove(path); err != nil {
+			if err := os.RemoveAll(path); err != nil {
 				return err
 			}
 			if err := os.MkdirAll(path, os.ModePerm); err != nil {
@@ -66,15 +70,26 @@ func (c *ControllerGenner) initDir() error {
 			}
 		}
 		for _, controller := range controllerMap {
-			filename := filepath.Join(path, controller.Name+"_controller.go")
-			_, err := os.Create(filename)
+			filename := filepath.Join(path, strcase.ToSnake(controller.Name+"_controller.go"))
+			w, err := os.Create(filename)
 			if err != nil {
 				return err
 			}
 			fmt.Println(color.GreenString("%s created", filename))
+			if err := c.execTemplate(w, controller, group); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
+}
+func (c *ControllerGenner) execTemplate(w io.Writer, controller *controller, groupName string) error {
+	var t *template.Template
+	var err error
+	if t, err = template.New("controller new").Parse(tpls.ControllerTpl); err != nil {
+		return err
+	}
+	return t.Execute(w, controller)
 }
 func (c *ControllerGenner) initHandlers() error {
 	reader := bufio.NewReader(c.reader)
@@ -161,15 +176,17 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				excontroller.Handlers = append(excontroller.Handlers, h)
 			} else {
 				c.Group[group][controllerName] = &controller{
-					Name:     controllerName,
+					Name:     strcase.ToCamel(controllerName),
 					Handlers: []*handler{h},
+					PkgName:  group,
 				}
 			}
 		} else {
 			c.Group[group] = map[string]*controller{
 				controllerName: {
-					Name:     controllerName,
+					Name:     strcase.ToCamel(controllerName),
 					Handlers: []*handler{h},
+					PkgName:  group,
 				},
 			}
 		}

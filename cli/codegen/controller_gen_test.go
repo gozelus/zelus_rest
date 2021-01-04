@@ -23,6 +23,12 @@ func TestGen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	apiFile, _ = os.Open(basePath + "/id_generator.api")
+	api = NewApiGenner(apiFile)
+	apiReader, err = api.Merge()
+	if err != nil {
+		t.Fatal(err)
+	}
 	if err := NewTypesInfo(varsFile, apiReader, "api").GenCode(); err != nil {
 		t.Fatal(err)
 	}
