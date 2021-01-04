@@ -15,29 +15,31 @@ import (
 )
 
 type controller struct {
-	Name     string
-	Handlers []*handler
-	PkgName  string
+	Name         string
+	Handlers     []*handler
+	PkgName      string
+	TypesPkgName string
 }
 type handler struct {
-	method       string
-	path         string
-	name         string
-	requestType  string
-	responseType string
-	comments     []string
+	Method       string
+	Path         string
+	Name         string
+	RequestType  string
+	ResponseType string
+	Comments     []string
 }
 type ControllerGenner struct {
-	readerFiler io.Reader
-	reader      io.Reader
-	writer      io.Writer
-	genPath     string
+	readerFiler  io.Reader
+	reader       io.Reader
+	writer       io.Writer
+	genPath      string
+	typesPkgName string
 
 	Group map[string]map[string]*controller
 }
 
-func NewControllerGenner(file io.Reader, genPath string) *ControllerGenner {
-	return &ControllerGenner{genPath: genPath, reader: file, Group: map[string]map[string]*controller{}}
+func NewControllerGenner(file io.Reader, genPath, typesPkgName string) *ControllerGenner {
+	return &ControllerGenner{typesPkgName: typesPkgName, genPath: genPath, reader: file, Group: map[string]map[string]*controller{}}
 }
 
 func (c *ControllerGenner) GenCode() error {
@@ -138,12 +140,12 @@ func (c *ControllerGenner) initHandlers() error {
 func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 	var h *handler
 	for _, line := range lines {
-		fmt.Printf("line : %s \n", line)
+		fmt.Println(color.BlueString("line : %s", line))
 		line = strings.TrimLeft(line, " ")
 		keys := strings.Split(line, " ")
 		if strings.HasPrefix(line, "//") {
 			h = &handler{}
-			h.comments = append(h.comments, line)
+			h.Comments = append(h.Comments, line)
 			continue
 		}
 		if strings.HasPrefix(line, "@") {
@@ -153,21 +155,21 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 			if h == nil {
 				h = &handler{}
 			}
-			h.name = keys[1]
+			h.Name = strcase.ToCamel(keys[1])
 			continue
 		}
 		if len(keys) != 5 {
 			return errors.New(fmt.Sprintf("line : %s is valid, check if u have req and res", line))
 		}
-		h.method = keys[0]
-		h.path = keys[1]
-		h.requestType = keys[2]
-		h.responseType = keys[4]
+		h.Method = strings.ToUpper(keys[0])
+		h.Path = keys[1]
+		h.RequestType = keys[2]
+		h.ResponseType = keys[4]
 
 		// 按照一级path，认为group
-		path := strings.Split(h.path, "/")
+		path := strings.Split(h.Path, "/")
 		if len(path) < 3 {
-			return errors.New(fmt.Sprintf("line : %s path : %s is too short, min lenth is 3", line, h.path))
+			return errors.New(fmt.Sprintf("line : %s path : %s is too short, min lenth is 3", line, h.Path))
 		}
 		group := path[1]
 		controllerName := path[2]
@@ -176,17 +178,19 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				excontroller.Handlers = append(excontroller.Handlers, h)
 			} else {
 				c.Group[group][controllerName] = &controller{
-					Name:     strcase.ToCamel(controllerName),
-					Handlers: []*handler{h},
-					PkgName:  group,
+					Name:         strcase.ToCamel(controllerName),
+					Handlers:     []*handler{h},
+					PkgName:      group,
+					TypesPkgName: c.typesPkgName,
 				}
 			}
 		} else {
 			c.Group[group] = map[string]*controller{
 				controllerName: {
-					Name:     strcase.ToCamel(controllerName),
-					Handlers: []*handler{h},
-					PkgName:  group,
+					Name:         strcase.ToCamel(controllerName),
+					Handlers:     []*handler{h},
+					PkgName:      group,
+					TypesPkgName: c.typesPkgName,
 				},
 			}
 		}

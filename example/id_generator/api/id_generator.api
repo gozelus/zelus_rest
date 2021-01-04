@@ -20,7 +20,7 @@ type BatchIDGetResponse struct {
 
 service {
     // 获取单个id
-    @handler BatchGetID
+    @handler SingleGetID
     GET /v1/id/single SingleIDGetRequest returns SingleIDGetResponse
 
     // 批量获取id

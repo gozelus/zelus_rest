@@ -15,7 +15,7 @@ func TestGen(t *testing.T) {
 		t.Fatal(err)
 	}
 	baseDir := "/Users/zhengli/workspace/private/projects/zelus_rest/cli/codegen/api"
-	err = NewControllerGenner(apiReader, baseDir).GenCode()
+	err = NewControllerGenner(apiReader, baseDir, "api").GenCode()
 	if err != nil {
 		t.Fatal(err)
 	}

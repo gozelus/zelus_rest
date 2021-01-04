@@ -7,6 +7,23 @@ import (
 	"os"
 )
 
+var apiCommand = cli.Command{
+	Name:  "api",
+	Usage: "根据 api 生成代码",
+	Flags: []cli.Flag{
+		cli.StringFlag{
+			Required: true,
+			Name:     "dir",
+			Usage:    `生成文件的目标路径`,
+		},
+		cli.StringFlag{
+			Required: true,
+			Name:     "file",
+			Usage:    `api 文件的入口`,
+		},
+	},
+	Action: actions.GenApis,
+}
 var repoCommand = cli.Command{
 	Name:  "repo",
 	Usage: "生成数据库模型 repo 代码",
@@ -88,6 +105,7 @@ var modelCommand = cli.Command{
 }
 
 var commands = []cli.Command{
+	apiCommand,
 	modelCommand,
 	repoCommand,
 }

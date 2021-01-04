@@ -12,6 +12,7 @@ const (
 	flagUrl     = "url"
 	flagTable   = "table"
 	flagPkgName = "pkg"
+	flagFile    = "file"
 )
 
 func GenModel(ctx *cli.Context) error {
@@ -36,7 +37,7 @@ func GenModel(ctx *cli.Context) error {
 		if err = m.GenCode(file); err != nil {
 			return err
 		}
-		if err := logFinishAndFmt(file.Name());err!=nil{
+		if err := logFinishAndFmt(file.Name()); err != nil {
 			return err
 		}
 	}
