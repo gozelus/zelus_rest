@@ -158,12 +158,6 @@ func (c *contextImp) JSONBodyBind(ptr interface{}) error {
 	return nil
 }
 func (c *contextImp) JSONQueryBind(ptr interface{}) error {
-	form := map[string]interface{}{}
-	for k, v := range c.request.URL.Query() {
-		if len(v) > 0 {
-			form[k] = v[0]
-		}
-	}
 	if err := binding.Query.Bind(c.request, ptr); err != nil {
 		return err
 	}
