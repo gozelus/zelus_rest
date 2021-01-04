@@ -21,7 +21,7 @@ func (formBinding) Bind(req *http.Request, obj interface{}) error {
 			return err
 		}
 	}
-	if err := mapForm(obj, req.Form); err != nil {
+	if err := mapForm(obj, req.Form, "form"); err != nil {
 		return err
 	}
 	return nil

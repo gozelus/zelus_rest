@@ -20,8 +20,8 @@ func mapUri(ptr interface{}, m map[string][]string) error {
 	return mapFormByTag(ptr, m, "uri")
 }
 
-func mapForm(ptr interface{}, form map[string][]string) error {
-	return mapFormByTag(ptr, form, "form")
+func mapForm(ptr interface{}, form map[string][]string, tag string) error {
+	return mapFormByTag(ptr, form, tag)
 }
 
 var emptyField = reflect.StructField{}
