@@ -5,20 +5,19 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 type ApiGenner struct {
 	infile    *os.File
-	dirpath   string
-	collector []*os.File
+	endReader *bytes.Buffer
 }
 
-func NewApiGenner(dirpath string, infile *os.File) *ApiGenner {
+func NewApiGenner(infile *os.File) *ApiGenner {
 	return &ApiGenner{
-		dirpath:   dirpath,
 		infile:    infile,
-		collector: []*os.File{infile},
+		endReader: bytes.NewBufferString(``),
 	}
 }
 
@@ -27,14 +26,7 @@ func (a *ApiGenner) Merge() (io.Reader, error) {
 		return nil, err
 	}
 	// merge
-	writer := bytes.NewBuffer([]byte(``))
-	for i := len(a.collector) - 1; i > 0; i-- {
-		file := a.collector[i]
-		if _, err := bufio.NewReader(file).WriteTo(writer); err != nil {
-			return nil, err
-		}
-	}
-	return writer, nil
+	return a.endReader, nil
 }
 
 func (a *ApiGenner) read(file *os.File) error {
@@ -52,15 +44,17 @@ func (a *ApiGenner) read(file *os.File) error {
 			if err := a.readAndMerge(strings.ReplaceAll(strings.Split(lineStr, " ")[1], `"`, "")); err != nil {
 				return err
 			}
+		} else {
+			a.endReader.WriteString(lineStr + "\n")
 		}
 	}
 }
 
 func (a *ApiGenner) readAndMerge(path string) error {
-	needMerge, err := os.Open(a.dirpath + path)
+	dirPath := filepath.Dir(a.infile.Name())
+	needMerge, err := os.Open(filepath.Join(dirPath, path))
 	if err != nil {
 		return err
 	}
-	a.collector = append(a.collector, needMerge)
-	return nil
+	return a.read(needMerge)
 }

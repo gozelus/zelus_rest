@@ -1,2 +1,10 @@
 type User struct {
 }
+
+service {
+    @handler
+    GET /v1/user/info
+
+    @handler
+    POST /v1/user/create
+}

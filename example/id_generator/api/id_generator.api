@@ -16,3 +16,12 @@ type BatchIDGetRequest struct {
 type BatchIDGetResponse struct {
 	IDs []int64 `json:"ids"` //
 }
+
+
+service {
+    @handler BatchGetID
+    GET /v1/id/single SingleIDGetRequest returns SingleIDGetResponse
+
+    @handler BatchGetID
+    GET /v1/id/batch BatchIDGetRequest returns BatchIDGetResponse
+}
