@@ -4,51 +4,36 @@ import "net/http"
 
 // 一些预定好的错误
 var (
-	statusMethodNotAllowed = rsp{
+	statusMethodNotAllowed = &statusError{
 		RCode:    http.StatusMethodNotAllowed,
 		RMessage: "method not allowed",
 	}
-	statusNotFound = rsp{
+	statusNotFound = &statusError{
 		RCode:    http.StatusNotFound,
 		RMessage: "not found",
 	}
-	statusInternalServerError = rsp{
+	statusInternalServerError = &statusError{
 		RCode:    http.StatusInternalServerError,
 		RMessage: "internal server error",
 	}
-	statusBadRequest = rsp{
-		RCode:    http.StatusBadRequest,
-		RMessage: "bad request",
-	}
 )
 
-type rsp struct {
+type statusError struct {
 	RCode    int
 	RMessage string
 	RData    interface{}
 }
 
-var _ Rsp = rsp{}
-
-func (r rsp) ErrorCode() int {
-	return r.RCode
-}
-func (r rsp) ErrorMessage() string {
-	return r.RMessage
-}
-func (r rsp) Data() interface{} {
-	return r.RData
+func (s statusError) Error() string {
+	return s.RMessage
 }
 
-func StatusMethodNotAllowedResp() Rsp {
-	return statusMethodNotAllowed
+func (s statusError) GetCode() int {
+	return s.RCode
 }
-func StatusNotFoundResp() Rsp {
-	return statusNotFound
+
+func (s statusError) GetMessage() string {
+	return s.RMessage
 }
-func StatusInternalServerErrorResp() Rsp {
-	return statusInternalServerError
-}
-func StatusBadRequestResp() Rsp {
-	return statusBadRequest
-}
+
+var _ StatusError = &statusError{}

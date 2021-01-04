@@ -33,6 +33,6 @@ func (r *routerz) search(method, path string) (HandlerFunc, error) {
 		}
 	}
 	return func(context Context) {
-		context.RenderJSON(statusNotFound)
+		context.RenderErrorJSON(nil, statusNotFound)
 	}, nil
 }

@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-playground/validator/v10"
-	"github.com/gozelus/zelus_rest/logger"
-	"github.com/pkg/errors"
 	"io"
 	"math"
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/gozelus/zelus_rest/logger"
+	"github.com/pkg/errors"
 
 	"github.com/google/uuid"
 )
@@ -19,6 +20,8 @@ import (
 // abortIndex 一个极大值
 // 一定比 handlers 数量大，导致 next 函数执行中断
 const abortIndex int8 = math.MaxInt8 / 2
+
+var _ Context = &contextImp{}
 
 type contextImp struct {
 	context.Context
@@ -52,19 +55,34 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
 }
-func (c *contextImp) RenderJSON(r Rsp) {
-	_ = c.renderJSON(r.ErrorCode(), struct {
-		Code      int         `json:"error_code"`
-		Message   string      `json:"error_message"`
-		RequestID string      `json:"request_id"`
-		Data      interface{} `json:"data"`
+func (c *contextImp) RenderOkJSON(data interface{}) {
+	_ = c.renderJSON(http.StatusOK, struct {
+		Code    int         `json:"code"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data"`
 	}{
-		Code:      r.ErrorCode(),
-		Message:   r.ErrorMessage(),
-		RequestID: c.requestID,
-		Data:      r.Data(),
+		Code:    200,
+		Message: "success",
+		Data:    data,
 	})
 }
+
+func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
+	var theError StatusError = statusInternalServerError
+	if val, ok := err.(StatusError); ok {
+		theError = val
+	}
+	_ = c.renderJSON(theError.GetCode(), struct {
+		Code    int         `json:"code"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data"`
+	}{
+		Code:    theError.GetCode(),
+		Message: theError.GetMessage(),
+		Data:    data,
+	})
+}
+
 func (c *contextImp) Headers() map[string][]string {
 	return c.request.Header
 }

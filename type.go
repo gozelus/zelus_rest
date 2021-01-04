@@ -10,6 +10,14 @@ import (
 )
 
 type (
+	// StatusError
+	// 用于拓展错误，GetCode 返回值将会作为 httpCode
+	StatusError interface {
+		error
+		GetCode() int
+		GetMessage() string
+	}
+
 	// handlerFund 定义实际处理请求的函数
 	HandlerFunc func(Context)
 
@@ -18,17 +26,6 @@ type (
 		Method  string
 		Path    string
 		Handler HandlerFunc
-	}
-
-	// ErrorInterface 用于扩展 Error
-	Rsp interface {
-		// ErrorCode 此方法的返回值将会作为 http code
-		// 也会映射为结构体中的 error_code 字段
-		ErrorCode() int
-		// ErrorMessage 映射为返回结构体中的 error_message 字段
-		ErrorMessage() string
-		// Data
-		Data() interface{}
 	}
 
 	Context interface {
@@ -41,7 +38,17 @@ type (
 		JSONQueryBind(v interface{}) error
 
 		Next()
-		RenderJSON(Rsp)
+
+		// RenderOkJSON
+		// 表示成功处理请求，返回 HttpStatusOk
+		RenderOkJSON(data interface{})
+
+		// RenderErrorJSON
+		// 内部尝试断言 error 为 StatusError，若断言成功
+		// HttpCode 会使用此 error 的 GetCode 返回值
+		// 若不成功，会使用 InternalServerErrorCode
+		RenderErrorJSON(data interface{}, err error)
+
 		GetRequestID() string
 		Set(string, interface{})
 		Get(string) (interface{}, bool)
@@ -102,7 +109,7 @@ func NewServer(host string, port int, opts ...Option) Server {
 			defer func() {
 				if err := recover(); err != nil {
 					logger.ErrorfWithStackWithContext(c, "recover err : %s", err)
-					c.RenderJSON(statusInternalServerError)
+					c.RenderErrorJSON(statusInternalServerError)
 				}
 			}()
 			c.Next()
