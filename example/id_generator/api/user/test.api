@@ -2,9 +2,9 @@ type User struct {
 }
 
 service {
-    @handler
-    GET /v1/user/info
+    @handler userInfo
+    GET /v1/user/info User returns User
 
-    @handler
-    POST /v1/user/create
+    @handler userCreate
+    POST /v1/user/create User returns User
 }
