@@ -8,4 +8,5 @@ var ModelDefineTpl = `
 // {{.ModelName}} {{.TableComment}}
 type {{.ModelName}} struct { {{range .Fields}}
  	{{.Name}} {{.TypeName}} ` + "`gorm:\"{{.DbName}}\"`" + ` // {{.Comment}}` + `{{end}} 
-}`
+}
+`

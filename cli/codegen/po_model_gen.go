@@ -3,14 +3,15 @@ package codegen
 import (
 	"bufio"
 	"bytes"
+	"html/template"
+	"io"
+	"strings"
+
 	"github.com/gozelus/zelus_rest/cli/tpls"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"html/template"
-	"io"
-	"strings"
 )
 
 type Field struct {
@@ -20,6 +21,7 @@ type Field struct {
 	DbName        string
 	MySQLTypeName string
 	Comment       string
+	Tags          string
 }
 
 type Idx struct {
