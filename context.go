@@ -28,6 +28,8 @@ type contextImp struct {
 	request   *http.Request
 	resWriter http.ResponseWriter
 
+	// err 用于存储中间可能发生的错误
+	err error
 	// Keys 用于在控制流中传递内容
 	keys map[string]interface{}
 	// 用于标志唯一请求，上下文传递
@@ -67,11 +69,16 @@ func (c *contextImp) RenderOkJSON(data interface{}) {
 	})
 }
 
+func (c *contextImp) GetError() error {
+	return c.err
+}
+
 func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	var theError StatusError = statusInternalServerError
 	if val, ok := err.(StatusError); ok {
 		theError = val
 	}
+	c.err = theError
 	_ = c.renderJSON(theError.GetCode(), struct {
 		Code    int         `json:"code"`
 		Message string      `json:"message"`
@@ -90,7 +97,7 @@ func (c *contextImp) Method() string {
 	return c.request.Method
 }
 func (c *contextImp) Path() string {
-	return c.request.URL.Path
+	return c.request.URL.String()
 }
 func (c *contextImp) GetRequestID() string { return c.requestID }
 func (c *contextImp) Set(key string, v interface{}) {

@@ -50,6 +50,7 @@ type (
 		RenderErrorJSON(data interface{}, err error)
 
 		GetRequestID() string
+		GetError() error
 		Set(string, interface{})
 		Get(string) (interface{}, bool)
 
@@ -78,10 +79,10 @@ type Plugin struct {
 }
 
 // NewServer 创建一个服务实例
-func NewServer(host string, port int, opts ...Option) Server {
+func NewServer(port int, opts ...Option) Server {
 	server := &serverImp{
 		httpServer: &http.Server{
-			Addr: fmt.Sprintf("%s:%d", host, port),
+			Addr: fmt.Sprintf("%s:%d", "localhost", port),
 		},
 		enginez: newEnginez(),
 	}
@@ -100,7 +101,11 @@ func NewServer(host string, port int, opts ...Option) Server {
 		server.plugin.Logger = func(c Context) {
 			now := time.Now()
 			c.Next()
-			logger.InfofWithContext(c, "method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), now.Sub(now).Milliseconds())
+			if err := c.GetError(); err != nil {
+				logger.WarnfWithContext(c, "method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.Method(), c.Path(), now.Sub(now).Milliseconds(), err, err)
+			} else {
+				logger.InfofWithContext(c, "method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), now.Sub(now).Milliseconds())
+			}
 		}
 		server.use(server.plugin.Logger)
 	}
@@ -109,7 +114,7 @@ func NewServer(host string, port int, opts ...Option) Server {
 			defer func() {
 				if err := recover(); err != nil {
 					logger.ErrorfWithStackWithContext(c, "recover err : %s", err)
-					c.RenderErrorJSON(statusInternalServerError)
+					c.RenderErrorJSON(nil, statusInternalServerError)
 				}
 			}()
 			c.Next()
