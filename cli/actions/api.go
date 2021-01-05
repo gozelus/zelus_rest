@@ -8,6 +8,7 @@ import (
 	"github.com/urfave/cli"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -149,7 +150,20 @@ func GenApis(ctx *cli.Context) error {
 		selfWireFile = nil
 	}
 
-	if err := codegen.NewWireGenner(controllers).GenCode(zelusWireFile, selfWireFile); err != nil {
+	if err := codegen.NewWireGenner(controllers, moduleName).GenCode(zelusWireFile, selfWireFile); err != nil {
+		return err
+	}
+	if !ex {
+		if err := logFinishAndFmt(selfWireFile.Name());err!=nil{
+			return err
+		}
+	}
+	if err := logFinishAndFmt(zelusWireFile.Name());err!=nil{
+		return err
+	}
+
+	if err := exec.Command("wire", "./internal/injector/*").Run();err!=nil{
+		fmt.Println(color.HiRedString("wire err for %s", err))
 		return err
 	}
 	return nil

@@ -21,6 +21,9 @@ package injector
 
 import (
 	"github.com/google/wire"
+	{{ range $import, $key := .Imports }}
+	{{ $import }}
+	{{ end }}
 )
 
 // 此 set 为代码生成，请勿改动

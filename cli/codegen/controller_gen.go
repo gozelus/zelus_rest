@@ -7,15 +7,18 @@ import (
 	"github.com/fatih/color"
 	"github.com/gozelus/zelus_rest/cli/tpls"
 	"github.com/iancoleman/strcase"
-	"text/template"
 	"io"
 	"strings"
+	"text/template"
 )
 
 type Controller struct {
 	Name     string
 	Handlers []*handler
 	PkgName  string
+
+	// 上级文件夹名
+	Group string
 	// 要导入的类型及服务包
 	Imports []string
 	// 依赖的类型包名
@@ -168,6 +171,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				c.Group[group][controllerName] = &Controller{
 					Name:            strcase.ToCamel(controllerName),
 					Handlers:        []*handler{h},
+					Group:           group,
 					PkgName:         group + "_controllers",
 					TypesPkgName:    c.TypesPkgName,
 					ServicesPkgName: group + "_services",
@@ -183,6 +187,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				controllerName: {
 					Name:            strcase.ToCamel(controllerName),
 					Handlers:        []*handler{h},
+					Group:           group,
 					PkgName:         group + "_controllers",
 					TypesPkgName:    c.TypesPkgName,
 					ServicesPkgName: group + "_services",
