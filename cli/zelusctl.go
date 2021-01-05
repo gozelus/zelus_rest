@@ -46,16 +46,6 @@ var repoCommand = cli.Command{
 							Name:     "table, t",
 							Usage:    `表名`,
 						},
-						cli.StringFlag{
-							Required: true,
-							Name:     "pkg",
-							Usage:    "package name",
-						},
-						cli.StringFlag{
-							Required: true,
-							Name:     "dir, d",
-							Usage:    "目标文件夹",
-						},
 					},
 					Action: actions.GenRepo,
 				},
@@ -85,16 +75,6 @@ var modelCommand = cli.Command{
 							Required: true,
 							Name:     "table, t",
 							Usage:    `表名`,
-						},
-						cli.StringFlag{
-							Required: true,
-							Name:     "pkg",
-							Usage:    "package name",
-						},
-						cli.StringFlag{
-							Required: true,
-							Name:     "dir, d",
-							Usage:    "目标文件夹",
 						},
 					},
 					Action: actions.GenModel,

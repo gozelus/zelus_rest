@@ -8,33 +8,27 @@ import (
 )
 
 const (
-	flagDir     = "dir"
-	flagUrl     = "url"
-	flagApp     = "appname"
-	flagTable   = "table"
-	flagPkgName = "pkg"
-	flagFile    = "file"
+	flagUrl   = "url"
+	flagApp   = "appname"
+	flagTable = "table"
+	flagFile  = "file"
 )
 
 func GenModel(ctx *cli.Context) error {
 	url := strings.TrimSpace(ctx.String(flagUrl))
-	dir := strings.TrimSpace(ctx.String(flagDir))
 	pattern := strings.TrimSpace(ctx.String(flagTable))
-	pkg := strings.TrimSpace(ctx.String(flagPkgName))
 
-	var dirAbsPath string
 	var err error
 	var file *os.File
 
-	if dirAbsPath, err = mkdirIfNotExist(dir); err != nil {
+	if err := forceCreateDir("./internal/data/po_models"); err != nil {
 		return err
 	}
-
 	for _, table := range strings.Split(pattern, ",") {
-		if file, err = os.Create(dirAbsPath + "/" + table + "_model.go"); err != nil {
+		if file, err = os.Create("./internal/data/po_models/" + table + "_po_model.go"); err != nil {
 			return err
 		}
-		m := codegen.NewPoModelStructInfo(table, url, pkg)
+		m := codegen.NewPoModelStructInfo(table, url, "po_models")
 		if err = m.GenCode(file); err != nil {
 			return err
 		}

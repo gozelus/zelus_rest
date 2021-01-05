@@ -1,36 +1,40 @@
 package actions
 
 import (
+	"fmt"
+	"github.com/fatih/color"
 	"github.com/gozelus/zelus_rest/cli/codegen"
 	"github.com/urfave/cli"
-	"os"
 	"strings"
 )
 
 func GenRepo(ctx *cli.Context) error {
 	url := strings.TrimSpace(ctx.String(flagUrl))
-	dir := strings.TrimSpace(ctx.String(flagDir))
 	pattern := strings.TrimSpace(ctx.String(flagTable))
-	pkg := strings.TrimSpace(ctx.String(flagPkgName))
 
-	var dirAbsPath string
+	//var dirAbsPath string
 	var err error
-	var file *os.File
+	//var file *os.File
 
-	if dirAbsPath, err = mkdirIfNotExist(dir); err != nil {
+	if _, err = mkdirIfNotExist("./internal/repos"); err != nil {
 		return err
 	}
-
 	for _, table := range strings.Split(pattern, ",") {
-		if file, err = os.Create(dirAbsPath + "/" + table + "_repo.go"); err != nil {
-			return err
+		path := fmt.Sprintf("./internal/repos/%s_repo.go", table)
+		file, ex, err := createIfNotExist(path)
+		if err != nil {
+			return nil
 		}
-		m := codegen.NewPoModelStructInfo(table, url, pkg)
-		r := codegen.NewRepoGener(file, m, pkg)
+		if ex {
+			fmt.Println(color.MagentaString("%s repo file exist , will ignore to write ... ", path))
+			continue
+		}
+		m := codegen.NewPoModelStructInfo(table, url, "repos")
+		r := codegen.NewRepoGener(file, m, "repos")
 		if err = r.GenCode(); err != nil {
 			return err
 		}
-		if err := logFinishAndFmt(file.Name());err!=nil{
+		if err := logFinishAndFmt(file.Name()); err != nil {
 			return err
 		}
 	}
