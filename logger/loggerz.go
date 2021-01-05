@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -393,7 +394,16 @@ func getCaller(skip int) string {
 	if !ok {
 		return "unknown"
 	}
-	return fmt.Sprintf("%s:%d", file, line)
+	// 不打印所有的文件路径
+	paths := strings.Split(file, "/")
+	var files []string
+	for i := len(paths) - 1; i >= 0; i-- {
+		files = append(files, paths[i])
+		if len(files) > 4 {
+			break
+		}
+	}
+	return fmt.Sprintf("%s:%d", strings.Join(files, "/"), line)
 }
 func formatWithCaller(msg string, skip int) string {
 	return fmt.Sprintf("%s\n\n%s", msg, stack(skip))
