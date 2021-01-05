@@ -10,6 +10,7 @@ import (
 const (
 	flagDir     = "dir"
 	flagUrl     = "url"
+	flagApp     = "appname"
 	flagTable   = "table"
 	flagPkgName = "pkg"
 	flagFile    = "file"

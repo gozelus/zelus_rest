@@ -96,14 +96,23 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		if len(lineStr) > 0 && typeDefineBegin {
 			lineStr = strings.TrimLeft(lineStr, " ")
 			keys := strings.Split(lineStr, " ")
-			if len(keys) < 3 {
-				return errors.New(fmt.Sprintf("field : %s is valid, plz check tag exists", keys[0]))
-			}
-			f := &Field{
-				Name:         keys[0],
-				TypeName:     keys[1],
-				LowCamelName: strcase.ToLowerCamel(keys[0]),
-				Tags:         keys[2],
+			var f *Field
+			if len(keys) == 1 {
+				// 内联
+				f = &Field{
+					Name:         keys[0],
+				}
+			} else {
+				if len(keys) < 3 {
+					return errors.New(fmt.Sprintf("field : %s is valid, plz check tag exists", keys[0]))
+				}
+				f = &Field{
+					Name:         keys[0],
+					TypeName:     keys[1],
+					LowCamelName: strcase.ToLowerCamel(keys[0]),
+					Tags:         keys[2],
+				}
+
 			}
 			if len(keys) >= 4 {
 				if len(keys) == 4 {

@@ -34,6 +34,7 @@ func GenApis(ctx *cli.Context) error {
 	}
 
 	apiFilePath := strings.TrimSpace(ctx.String(flagFile))
+	appName := strings.TrimSpace(ctx.String(flagApp))
 
 	// apiFileMerge 需要重新读取一次
 	var apiFileMergeCopy io.Reader
@@ -51,6 +52,32 @@ func GenApis(ctx *cli.Context) error {
 	}
 	if apiFileMerge, err = mergeApiFile(apiFilePath); err != nil {
 		return err
+	}
+
+	// 生成可执行文件
+	if _, err = mkdirIfNotExist("./cmd"); err != nil {
+		return err
+	}
+	mainFile, err := forceCreateFile(filepath.Join("./cmd", appName+".go"))
+	if err != nil {
+		return err
+	}
+	if err := codegen.NewMainGenner(moduleName, appName).GenCode(mainFile); err != nil {
+		return err
+	}
+	if err := logFinishAndFmt(mainFile.Name()); err != nil {
+		return err
+	}
+
+	// docker file
+	dockerFile, ex, err := createIfNotExist("./Dockerfile")
+	if err != nil {
+		return err
+	}
+	if !ex {
+		if err := codegen.NewDockerFileGenner(appName).GenCode(dockerFile); err != nil {
+			return err
+		}
 	}
 
 	// gen api.vars.go

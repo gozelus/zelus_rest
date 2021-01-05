@@ -16,6 +16,11 @@ var apiCommand = cli.Command{
 			Name:     "file",
 			Usage:    `api 文件的入口`,
 		},
+		cli.StringFlag{
+			Required: true,
+			Name:     "appname",
+			Usage:    `工程名`,
+		},
 	},
 	Action: actions.GenApis,
 }
