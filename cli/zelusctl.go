@@ -13,11 +13,6 @@ var apiCommand = cli.Command{
 	Flags: []cli.Flag{
 		cli.StringFlag{
 			Required: true,
-			Name:     "dir",
-			Usage:    `生成文件的目标路径`,
-		},
-		cli.StringFlag{
-			Required: true,
 			Name:     "file",
 			Usage:    `api 文件的入口`,
 		},

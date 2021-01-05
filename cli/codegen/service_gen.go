@@ -15,11 +15,11 @@ type serviceInfo struct {
 }
 
 type ServiceGenner struct {
-	controller  *controller
+	controller  *Controller
 	serviceInfo *serviceInfo
 }
 
-func NewServiceGener(c *controller) *ServiceGenner {
+func NewServiceGener(c *Controller) *ServiceGenner {
 	s := &ServiceGenner{
 		controller:  c,
 		serviceInfo: initServiceInfo(c),
@@ -41,7 +41,7 @@ func (s *ServiceGenner) GenCode(file io.Writer) error {
 	return nil
 }
 
-func initServiceInfo(controller *controller) *serviceInfo {
+func initServiceInfo(controller *Controller) *serviceInfo {
 	return &serviceInfo{
 		Name:         controller.Name,
 		Handlers:     controller.Handlers,

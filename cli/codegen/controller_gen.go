@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-type controller struct {
+type Controller struct {
 	Name     string
 	Handlers []*handler
 	PkgName  string
@@ -42,15 +42,15 @@ type ControllerGenner struct {
 	// key2 二级path  ->  文件名
 	// 如 /v1/user/create -> { "v1" : { "user" : $controller } }
 	// controller 下的函数名，将会被 @handler 后的字符串映射
-	Group map[string]map[string]*controller
+	Group map[string]map[string]*Controller
 }
 
 func NewControllerGenner() *ControllerGenner {
-	return &ControllerGenner{Group: map[string]map[string]*controller{}}
+	return &ControllerGenner{Group: map[string]map[string]*Controller{}}
 }
 
 // 将 controller 结构体转为代码写入文件
-func (c ControllerGenner) GenCode(w io.Writer, controller *controller) error {
+func (c ControllerGenner) GenCode(w io.Writer, controller *Controller) error {
 	if err := c.execTemplate(w, controller); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func (c ControllerGenner) GenCode(w io.Writer, controller *controller) error {
 }
 
 // 通过 api 文件生成 controller 定义的结构体
-func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName string) (map[string]map[string]*controller, error) {
+func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName string) (map[string]map[string]*Controller, error) {
 	c.reader = file
 	c.TypesPkgName = typesPkgName
 	if err := c.initHandlers(); err != nil {
@@ -67,7 +67,7 @@ func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName string) (ma
 	return c.Group, nil
 }
 
-func (c *ControllerGenner) execTemplate(w io.Writer, controller *controller) error {
+func (c *ControllerGenner) execTemplate(w io.Writer, controller *Controller) error {
 	var t *template.Template
 	var err error
 	if t, err = template.New("controller new").Parse(tpls.ControllerTpl); err != nil {
@@ -160,7 +160,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 			if excontroller, ok2 := c.Group[group][controllerName]; ok2 {
 				excontroller.Handlers = append(excontroller.Handlers, h)
 			} else {
-				c.Group[group][controllerName] = &controller{
+				c.Group[group][controllerName] = &Controller{
 					Name:            strcase.ToCamel(controllerName),
 					Handlers:        []*handler{h},
 					PkgName:         group + "_controllers",
@@ -169,7 +169,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				}
 			}
 		} else {
-			c.Group[group] = map[string]*controller{
+			c.Group[group] = map[string]*Controller{
 				controllerName: {
 					Name:            strcase.ToCamel(controllerName),
 					Handlers:        []*handler{h},

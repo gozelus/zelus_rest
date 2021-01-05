@@ -26,13 +26,18 @@ func mergeApiFile(apiFilePath string) (io.Reader, error) {
 }
 
 func GenApis(ctx *cli.Context) error {
-	dir := strings.TrimSpace(ctx.String(flagDir))
+	dir, _ := os.Getwd()
 	apiFilePath := strings.TrimSpace(ctx.String(flagFile))
 
 	// apiFileMerge 需要重新读取一次
 	var apiFileMergeCopy io.Reader
 	var apiFileMerge io.Reader
 	var err error
+
+	_, err = getModuleName()
+	if err != nil {
+		return err
+	}
 
 	if apiFileMergeCopy, err = mergeApiFile(apiFilePath); err != nil {
 		return err
@@ -71,12 +76,12 @@ func GenApis(ctx *cli.Context) error {
 		// 遍历 controller 准备生成对应的 service 文件
 		for _, c := range controllersMap {
 			filename := filepath.Join(path, strcase.ToSnake(c.Name+"_service.go"))
-			createFile, err := createIfNotExist(filename)
+			createFile, exist, err := createIfNotExist(filename)
 			if err != nil {
 				return err
 			}
-			if createFile == nil {
-				fmt.Println(color.HiRedString("%s exist, will ignore ...", filename))
+			if exist {
+				fmt.Println(color.HiRedString("%s exist, will ignore to write %s ...", filename, c.Name))
 				continue
 			}
 
@@ -117,25 +122,29 @@ func GenApis(ctx *cli.Context) error {
 			}
 		}
 	}
-	return nil
-}
 
-func forceCreateDir(path string) error {
-	_, err := os.Stat(path)
-	if err == nil {
-		fmt.Println(color.HiRedString("%s exist, will remove and recreate", path))
-		if err := os.RemoveAll(path); err != nil {
-			return err
-		}
-		if err := os.MkdirAll(path, os.ModePerm); err != nil {
-			return err
+	// 最后生成对应的 wire set
+	var controllers []*codegen.Controller
+	for _, cmap := range groupControllers {
+		for _, c := range cmap {
+			controllers = append(controllers, c)
 		}
 	}
-	if os.IsNotExist(err) {
-		fmt.Println(color.HiGreenString("%s not exist, will recreate", path))
-		if err := os.MkdirAll(path, os.ModePerm); err != nil {
-			return err
-		}
+	_, err = mkdirIfNotExist(filepath.Join(dir, "injector"))
+	if err != nil {
+		return err
+	}
+	zelusWireFile, err := forceCreateFile(filepath.Join(dir, "injector", "wire_zelusCtl.go"))
+	if err != nil {
+		return err
+	}
+	selfWireFile, ex, err := createIfNotExist(filepath.Join(dir, "injector", "wire_self.go"))
+	if ex {
+		selfWireFile = nil
+	}
+
+	if err := codegen.NewWireGenner(controllers).GenCode(zelusWireFile, selfWireFile); err != nil {
+		return err
 	}
 	return nil
 }
