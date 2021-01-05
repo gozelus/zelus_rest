@@ -28,6 +28,9 @@ FROM alpine
 
 RUN apk update --no-cache && apk add --no-cache ca-certificates tzdata
 ENV TZ Asia/Shanghai
+ENV aliyun_logs_{{ .AppName }}-log stdout
+ENV aliyun_logs_{{ .AppName }}-log_ttl "30"
+ENV aliyun_logs_{{ .AppName }}-log_shard "2"
 
 WORKDIR /app
 COPY --from=builder /app/{{ .AppName }} /app/{{ .AppName }}
