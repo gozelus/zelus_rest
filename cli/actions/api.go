@@ -154,15 +154,16 @@ func GenApis(ctx *cli.Context) error {
 		return err
 	}
 	if !ex {
-		if err := logFinishAndFmt(selfWireFile.Name());err!=nil{
+		if err := logFinishAndFmt(selfWireFile.Name()); err != nil {
 			return err
 		}
 	}
-	if err := logFinishAndFmt(zelusWireFile.Name());err!=nil{
+	if err := logFinishAndFmt(zelusWireFile.Name()); err != nil {
 		return err
 	}
 
-	if err := exec.Command("wire", "./internal/injector/*").Run();err!=nil{
+	err = exec.Command("wire", "./internal/injector/wire_zelusCtl.go", "./internal/injector/wire_self.go").Run()
+	if err != nil {
 		fmt.Println(color.HiRedString("wire err for %s", err))
 		return err
 	}
