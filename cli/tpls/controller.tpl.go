@@ -3,8 +3,12 @@ package tpls
 var ControllerTpl = `package {{ .PkgName }}
 
 import (
-	"github.com/gozelus/zelus_rest"
+	rest "github.com/gozelus/zelus_rest"
+	{{ range $import := .Imports }}
+	{{ $import }}
+	{{ end }}
 )
+
 
 type {{ .Name }}Controller struct {
 	service *{{ $.ServicesPkgName }}.{{ .Name }}Service

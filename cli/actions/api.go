@@ -27,14 +27,20 @@ func mergeApiFile(apiFilePath string) (io.Reader, error) {
 
 func GenApis(ctx *cli.Context) error {
 	dir, _ := os.Getwd()
+	dir = filepath.Join(dir, "internal")
+	if _, err := mkdirIfNotExist(dir); err != nil {
+		return err
+	}
+
 	apiFilePath := strings.TrimSpace(ctx.String(flagFile))
 
 	// apiFileMerge 需要重新读取一次
 	var apiFileMergeCopy io.Reader
 	var apiFileMerge io.Reader
 	var err error
+	var moduleName string
 
-	_, err = getModuleName()
+	moduleName, err = getModuleName()
 	if err != nil {
 		return err
 	}
@@ -62,7 +68,7 @@ func GenApis(ctx *cli.Context) error {
 
 	// 先解析 apiFile 以此生成 controllers
 	controllerGen := codegen.NewControllerGenner()
-	groupControllers, err := controllerGen.ParseApiFile(apiFileMergeCopy, "api")
+	groupControllers, err := controllerGen.ParseApiFile(apiFileMergeCopy, "api", moduleName)
 	if err != nil {
 		return err
 	}
@@ -87,7 +93,7 @@ func GenApis(ctx *cli.Context) error {
 
 			fmt.Println(color.HiGreenString("%s created", filename))
 			// 交给 genner
-			if err := codegen.NewServiceGener(c).GenCode(createFile); err != nil {
+			if err := codegen.NewServiceGener(moduleName).GenCode(createFile, c); err != nil {
 				return err
 			}
 			if err := logFinishAndFmt(createFile.Name()); err != nil {

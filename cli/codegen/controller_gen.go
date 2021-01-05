@@ -7,7 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/gozelus/zelus_rest/cli/tpls"
 	"github.com/iancoleman/strcase"
-	"html/template"
+	"text/template"
 	"io"
 	"strings"
 )
@@ -16,6 +16,8 @@ type Controller struct {
 	Name     string
 	Handlers []*handler
 	PkgName  string
+	// 要导入的类型及服务包
+	Imports []string
 	// 依赖的类型包名
 	TypesPkgName string
 	// 依赖的服务包名
@@ -37,6 +39,8 @@ type ControllerGenner struct {
 	TypesPkgName string
 	// 依赖的服务包名
 	ServicesPkgName string
+	// 当前项目 module name
+	ModuleName string
 
 	// key1 一级path  ->  文件夹名
 	// key2 二级path  ->  文件名
@@ -58,9 +62,10 @@ func (c ControllerGenner) GenCode(w io.Writer, controller *Controller) error {
 }
 
 // 通过 api 文件生成 controller 定义的结构体
-func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName string) (map[string]map[string]*Controller, error) {
+func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName, moduleName string) (map[string]map[string]*Controller, error) {
 	c.reader = file
 	c.TypesPkgName = typesPkgName
+	c.ModuleName = moduleName
 	if err := c.initHandlers(); err != nil {
 		return nil, err
 	}
@@ -166,6 +171,11 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 					PkgName:         group + "_controllers",
 					TypesPkgName:    c.TypesPkgName,
 					ServicesPkgName: group + "_services",
+					Imports: []string{
+						fmt.Sprintf(`"%s/internal"`, c.ModuleName),
+						fmt.Sprintf(`"%s/internal/services/v1"`, c.ModuleName),
+						fmt.Sprintf(`"%s/api/errors"`, c.ModuleName),
+					},
 				}
 			}
 		} else {
@@ -176,6 +186,11 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 					PkgName:         group + "_controllers",
 					TypesPkgName:    c.TypesPkgName,
 					ServicesPkgName: group + "_services",
+					Imports: []string{
+						fmt.Sprintf(`"%s/internal"`, c.ModuleName),
+						fmt.Sprintf(`"%s/internal/services/%s"`, c.ModuleName, group),
+						fmt.Sprintf(`"%s/api/errors"`, c.ModuleName),
+					},
 				},
 			}
 		}
