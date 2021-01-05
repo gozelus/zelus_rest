@@ -40,6 +40,8 @@ func GenApis(ctx *cli.Context) error {
 		return err
 	}
 
+	// gen api.vars.go
+	// 生成api包的类型定义文件
 	varsFile, err := os.Create(filepath.Join(dir, "vars.go"))
 	if err != nil {
 		return err
@@ -48,6 +50,10 @@ func GenApis(ctx *cli.Context) error {
 	if err = codegen.NewTypesInfo(varsFile, apiFileMerge, "api").GenCode(); err != nil {
 		return err
 	}
+	if err := logFinishAndFmt(filepath.Join(dir, "vars.go")); err != nil {
+		return err
+	}
+
 	if err := codegen.NewControllerGenner(apiFileMergeCopy, dir, "api").GenCode(); err != nil {
 		return err
 	}
