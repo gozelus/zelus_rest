@@ -78,10 +78,10 @@ func (c *contextImp) GetError() error {
 
 func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	var theError StatusError = statusInternalServerError
+	c.err = err
 	if val, ok := err.(StatusError); ok {
 		theError = val
 	}
-	c.err = theError
 	_ = c.renderJSON(theError.GetCode(), struct {
 		Code      int         `json:"code"`
 		Message   string      `json:"message"`
