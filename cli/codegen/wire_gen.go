@@ -17,12 +17,12 @@ type constructorInfo struct {
 }
 type WireGenner struct {
 	Constructors []*constructorInfo
-	Controllers  []*Controller
+	Controllers  []Controller
 	ModuleName   string
 	Imports      map[string]string
 }
 
-func NewWireGenner(controllers []*Controller, moduleName string) *WireGenner {
+func NewWireGenner(controllers []Controller, moduleName string) *WireGenner {
 	return &WireGenner{
 		ModuleName:  moduleName,
 		Controllers: controllers,

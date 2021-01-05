@@ -131,10 +131,10 @@ func GenApis(ctx *cli.Context) error {
 	}
 
 	// 最后生成对应的 wire set
-	var controllers []*codegen.Controller
+	var controllers []codegen.Controller
 	for _, cmap := range groupControllers {
 		for _, c := range cmap {
-			controllers = append(controllers, c)
+			controllers = append(controllers, *c)
 		}
 	}
 	_, err = mkdirIfNotExist(filepath.Join(dir, "injector"))
@@ -165,6 +165,20 @@ func GenApis(ctx *cli.Context) error {
 	err = exec.Command("wire", "./internal/injector/wire_zelusCtl.go", "./internal/injector/wire_self.go").Run()
 	if err != nil {
 		fmt.Println(color.HiRedString("wire err for %s", err))
+		return err
+	}
+
+	if err := forceCreateDir(filepath.Join(dir, "routes")); err != nil {
+		return err
+	}
+	var routesFile *os.File
+	if routesFile, err = forceCreateFile(filepath.Join(dir, "routes", "routes.go")); err != nil {
+		return err
+	}
+	if err := codegen.NewRouteGenner(moduleName).GenCode(routesFile, controllers); err != nil {
+		return err
+	}
+	if err := logFinishAndFmt(routesFile.Name()); err != nil {
 		return err
 	}
 	return nil
