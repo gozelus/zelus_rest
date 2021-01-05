@@ -38,3 +38,4 @@ func GenModel(ctx *cli.Context) error {
 	}
 	return nil
 }
+

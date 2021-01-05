@@ -11,16 +11,17 @@ import (
 func GenRepo(ctx *cli.Context) error {
 	url := strings.TrimSpace(ctx.String(flagUrl))
 	pattern := strings.TrimSpace(ctx.String(flagTable))
-
-	//var dirAbsPath string
 	var err error
-	//var file *os.File
+	moduleName, err := getModuleName()
+	if err != nil {
+		return err
+	}
 
-	if _, err = mkdirIfNotExist("./internal/repos"); err != nil {
+	if _, err = mkdirIfNotExist("./internal/biz/repos"); err != nil {
 		return err
 	}
 	for _, table := range strings.Split(pattern, ",") {
-		path := fmt.Sprintf("./internal/repos/%s_repo.go", table)
+		path := fmt.Sprintf("./internal/biz/repos/%s_repo.go", table)
 		file, ex, err := createIfNotExist(path)
 		if err != nil {
 			return nil
@@ -30,7 +31,7 @@ func GenRepo(ctx *cli.Context) error {
 			continue
 		}
 		m := codegen.NewPoModelStructInfo(table, url, "repos")
-		r := codegen.NewRepoGener(file, m, "repos")
+		r := codegen.NewRepoGener(file, m, "repos", moduleName)
 		if err = r.GenCode(); err != nil {
 			return err
 		}

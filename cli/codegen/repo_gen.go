@@ -13,17 +13,19 @@ import (
 )
 
 type RepoGener struct {
-	file    io.Writer
-	model   *PoModelStructInfo
-	funcs   []string
-	pkgName string
+	file       io.Writer
+	model      *PoModelStructInfo
+	funcs      []string
+	pkgName    string
+	ModuleName string
 }
 
-func NewRepoGener(file io.Writer, model *PoModelStructInfo, pkgName string) *RepoGener {
+func NewRepoGener(file io.Writer, model *PoModelStructInfo, pkgName, moduleName string) *RepoGener {
 	return &RepoGener{
-		file:    file,
-		model:   model,
-		pkgName: pkgName,
+		file:       file,
+		model:      model,
+		pkgName:    pkgName,
+		ModuleName: moduleName,
 	}
 }
 
@@ -35,6 +37,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
+	"{{ .ModuleName }}/internal/data/po_models"
 )`
 	t, _ := template.New("repo package").Parse(tpl)
 	if err := t.Execute(i.file, i); err != nil {
@@ -117,7 +120,7 @@ func (i *RepoGener) genListFuncs() error {
 				SelectField:  idx.Fields[len(idx.Fields)-1],
 				OrderField:   idx.Fields[len(idx.Fields)-2],
 				WhereFields:  idx.Fields[:len(idx.Fields)-2],
-				ModelPkgName: "models",
+				ModelPkgName: "po_models",
 				RepoImpName:  strcase.ToCamel(i.model.ModelName + "RepoImp"),
 				ModelName:    i.model.ModelName,
 				TableName:    i.model.TableName,
@@ -194,7 +197,7 @@ func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
 			ModelPkgName string
 		}{
 			IdxName:      idx.Name,
-			ModelPkgName: "models",
+			ModelPkgName: "po_models",
 			ModelName:    strcase.ToCamel(i.model.ModelName),
 			TableName:    i.model.TableName,
 			RepoImpName:  strcase.ToCamel(i.model.ModelName + "RepoImp"),
@@ -241,5 +244,3 @@ func (i *RepoGener) genFunc(t *template.Template, param interface{}) error {
 	}
 	return nil
 }
-
-//func (i *RepoGener) readFiledGen
