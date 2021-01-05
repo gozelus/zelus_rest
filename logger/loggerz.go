@@ -374,9 +374,9 @@ func shouldLogToFile(entry *logEntry) {
 func outputColorString(entry *logEntry, writer io.Writer) {
 
 	if entry.ContextID != "" {
-		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s %s %s", entry.Caller, entry.LevelStr, entry.ContextID, entry.Timestamp, entry.Content))
+		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.ContextID, entry.Timestamp, entry.Content))
 	} else {
-		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s %s", entry.Caller, entry.LevelStr, entry.Timestamp, entry.Content))
+		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.Timestamp, entry.Content))
 	}
 }
 
@@ -399,9 +399,12 @@ func getCaller(skip int) string {
 	var files []string
 	for i := len(paths) - 1; i >= 0; i-- {
 		files = append(files, paths[i])
-		if len(files) > 4 {
+		if len(files) > 3 {
 			break
 		}
+	}
+	for i, j := 0, len(files)-1; i < j; i, j = i+1, j-1 {
+		files[i], files[j] = files[j], files[i]
 	}
 	return fmt.Sprintf("%s:%d", strings.Join(files, "/"), line)
 }
