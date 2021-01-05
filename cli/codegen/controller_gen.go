@@ -9,16 +9,17 @@ import (
 	"github.com/iancoleman/strcase"
 	"html/template"
 	"io"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
 type controller struct {
-	Name         string
-	Handlers     []*handler
-	PkgName      string
+	Name     string
+	Handlers []*handler
+	PkgName  string
+	// 依赖的类型包名
 	TypesPkgName string
+	// 依赖的服务包名
+	ServicesPkgName string
 }
 type handler struct {
 	Method       string
@@ -29,63 +30,44 @@ type handler struct {
 	Comments     []string
 }
 type ControllerGenner struct {
-	readerFiler  io.Reader
-	reader       io.Reader
-	writer       io.Writer
-	genPath      string
-	typesPkgName string
 
+	// reader api 文件的读取入口抽象
+	reader io.Reader
+	// 依赖的类型包名
+	TypesPkgName string
+	// 依赖的服务包名
+	ServicesPkgName string
+
+	// key1 一级path  ->  文件夹名
+	// key2 二级path  ->  文件名
+	// 如 /v1/user/create -> { "v1" : { "user" : $controller } }
+	// controller 下的函数名，将会被 @handler 后的字符串映射
 	Group map[string]map[string]*controller
 }
 
-func NewControllerGenner(file io.Reader, genPath, typesPkgName string) *ControllerGenner {
-	return &ControllerGenner{typesPkgName: typesPkgName, genPath: genPath, reader: file, Group: map[string]map[string]*controller{}}
+func NewControllerGenner() *ControllerGenner {
+	return &ControllerGenner{Group: map[string]map[string]*controller{}}
 }
 
-func (c *ControllerGenner) GenCode() error {
+// 将 controller 结构体转为代码写入文件
+func (c ControllerGenner) GenCode(w io.Writer, controller *controller) error {
+	if err := c.execTemplate(w, controller); err != nil {
+		return err
+	}
+	return nil
+}
+
+// 通过 api 文件生成 controller 定义的结构体
+func (c *ControllerGenner) ParseApiFile(file io.Reader, typesPkgName string) (map[string]map[string]*controller, error) {
+	c.reader = file
+	c.TypesPkgName = typesPkgName
 	if err := c.initHandlers(); err != nil {
-		return err
+		return nil, err
 	}
-	if err := c.initDir(); err != nil {
-		return err
-	}
-	return nil
+	return c.Group, nil
 }
 
-func (c *ControllerGenner) initDir() error {
-	for group, controllerMap := range c.Group {
-		path := filepath.Join(c.genPath, group)
-		_, err := os.Stat(path)
-		if err == nil {
-			fmt.Println(color.GreenString("%s exist, will remove and recreate", path))
-			if err := os.RemoveAll(path); err != nil {
-				return err
-			}
-			if err := os.MkdirAll(path, os.ModePerm); err != nil {
-				return err
-			}
-		}
-		if os.IsNotExist(err) {
-			fmt.Println(color.GreenString("%s not exist, will recreate", path))
-			if err := os.MkdirAll(path, os.ModePerm); err != nil {
-				return err
-			}
-		}
-		for _, controller := range controllerMap {
-			filename := filepath.Join(path, strcase.ToSnake(controller.Name+"_controller.go"))
-			w, err := os.Create(filename)
-			if err != nil {
-				return err
-			}
-			fmt.Println(color.GreenString("%s created", filename))
-			if err := c.execTemplate(w, controller, group); err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-func (c *ControllerGenner) execTemplate(w io.Writer, controller *controller, groupName string) error {
+func (c *ControllerGenner) execTemplate(w io.Writer, controller *controller) error {
 	var t *template.Template
 	var err error
 	if t, err = template.New("controller new").Parse(tpls.ControllerTpl); err != nil {
@@ -93,6 +75,7 @@ func (c *ControllerGenner) execTemplate(w io.Writer, controller *controller, gro
 	}
 	return t.Execute(w, controller)
 }
+
 func (c *ControllerGenner) initHandlers() error {
 	reader := bufio.NewReader(c.reader)
 	var lineNum int
@@ -178,19 +161,21 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				excontroller.Handlers = append(excontroller.Handlers, h)
 			} else {
 				c.Group[group][controllerName] = &controller{
-					Name:         strcase.ToCamel(controllerName),
-					Handlers:     []*handler{h},
-					PkgName:      group,
-					TypesPkgName: c.typesPkgName,
+					Name:            strcase.ToCamel(controllerName),
+					Handlers:        []*handler{h},
+					PkgName:         group + "_controllers",
+					TypesPkgName:    c.TypesPkgName,
+					ServicesPkgName: group + "_services",
 				}
 			}
 		} else {
 			c.Group[group] = map[string]*controller{
 				controllerName: {
-					Name:         strcase.ToCamel(controllerName),
-					Handlers:     []*handler{h},
-					PkgName:      group,
-					TypesPkgName: c.typesPkgName,
+					Name:            strcase.ToCamel(controllerName),
+					Handlers:        []*handler{h},
+					PkgName:         group + "_controllers",
+					TypesPkgName:    c.TypesPkgName,
+					ServicesPkgName: group + "_services",
 				},
 			}
 		}
