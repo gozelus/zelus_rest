@@ -104,7 +104,12 @@ func NewServer(port int, opts ...Option) Server {
 			if err := c.GetError(); err != nil {
 				logger.WarnfWithContext(c, "method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.Method(), c.Path(), now.Sub(now).Milliseconds(), err, err)
 			} else {
-				logger.InfofWithContext(c, "method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), time.Now().Sub(now).Milliseconds())
+				duration := time.Now().Sub(now).Milliseconds()
+				if duration > 300 {
+					logger.InfofWithContext(c, "slow request -> method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), time.Now().Sub(now).Milliseconds())
+				} else {
+					logger.InfofWithContext(c, "ok request -> method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), time.Now().Sub(now).Milliseconds())
+				}
 			}
 		}
 		server.use(server.plugin.Logger)

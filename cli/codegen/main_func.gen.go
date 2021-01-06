@@ -64,7 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("will listen in : %d  .... ", c.Port)
+	fmt.Printf("will listen in : %d  .... \n", c.Port)
 
 	if err := s.Run(); err != nil {
 		logger.Errorf("add route err for : %s", err)
