@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -34,6 +35,8 @@ type (
 		Headers() map[string][]string
 		Method() string
 		Path() string
+
+		File(name string) (io.Reader, error)
 		JSONBodyBind(v interface{}) error
 		JSONQueryBind(v interface{}) error
 

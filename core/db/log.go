@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+
 func exec(ctx rest.Context, sql string, f func() (int64, error)) error {
 	now := time.Now()
 	rows, err := f()

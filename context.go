@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/gozelus/zelus_rest/core/bindding"
+	"io"
 	"math"
 	"net/http"
 	"strings"
@@ -122,6 +123,13 @@ func (c *contextImp) Next() {
 		c.handlers[c.index](c)
 		c.index++
 	}
+}
+func (c *contextImp) File(name string) (io.Reader, error) {
+	f, _, err := c.request.FormFile(name)
+	if err != nil {
+		return nil, err
+	}
+	return f, nil
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
 	var err error
