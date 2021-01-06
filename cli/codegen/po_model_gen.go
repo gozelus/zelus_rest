@@ -41,6 +41,8 @@ type PoModelStructInfo struct {
 	Fields       []*Field
 	FieldsMap    map[string]*Field
 	Idx          []*Idx
+
+	Imports map[string]string
 }
 
 func (m *PoModelStructInfo) GenCode(file io.Writer) error {
@@ -49,6 +51,13 @@ func (m *PoModelStructInfo) GenCode(file io.Writer) error {
 
 	// gen package code
 	if t, err = template.New("pkg").Parse(tpls.ModelPackageTpl); err != nil {
+		return err
+	}
+	if err := t.Execute(file, m); err != nil {
+		return err
+	}
+
+	if t, err = template.New("imports").Parse(tpls.ModelImportsTpl); err != nil {
 		return err
 	}
 	if err := t.Execute(file, m); err != nil {
@@ -79,6 +88,7 @@ func NewPoModelStructInfo(tableName string, datasource string, packageName strin
 		panic(err)
 	}
 	m := &PoModelStructInfo{
+		Imports:     map[string]string{},
 		FieldsMap:   map[string]*Field{},
 		TableName:   tableName,
 		ddl:         result.DDL,
@@ -210,7 +220,7 @@ func (m *PoModelStructInfo) initFields() error {
 				f.Comment = strings.ReplaceAll(strings.ReplaceAll(keys[i+1], "'", ""), ",", "")
 			}
 		}
-		if f.TypeName, err = getGolangTypeWithMysqlType(f.MySQLTypeName); err != nil {
+		if f.TypeName, err = m.getGolangTypeWithMysqlType(f.MySQLTypeName); err != nil {
 			return err
 		}
 		m.FieldsMap[f.DbName] = &f
@@ -218,7 +228,7 @@ func (m *PoModelStructInfo) initFields() error {
 	}
 }
 
-func getGolangTypeWithMysqlType(mysqlType string) (string, error) {
+func (m *PoModelStructInfo) getGolangTypeWithMysqlType(mysqlType string) (string, error) {
 	switch mysqlType {
 	case "tinyint":
 		return "int64", nil
@@ -239,8 +249,10 @@ func getGolangTypeWithMysqlType(mysqlType string) (string, error) {
 	case "datetime":
 		return "time.Time", nil
 	case "time":
+		m.Imports["time"] = "time"
 		return "time.Time", nil
 	case "timestamp":
+		m.Imports["time"] = "time"
 		return "time.Time", nil
 	case "varchar":
 		return "string", nil
@@ -252,6 +264,9 @@ func getGolangTypeWithMysqlType(mysqlType string) (string, error) {
 		return "string", nil
 	case "tinytext":
 		return "string", nil
+	case "json":
+		m.Imports["gorm.io/datatypes"] = "gorm.io/datatypes"
+		return "datatypes.JSON", nil
 	}
 	return "", errors.WithStack(errors.New("not found with " + mysqlType))
 }

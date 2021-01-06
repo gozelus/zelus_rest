@@ -21,11 +21,11 @@ func GenModel(ctx *cli.Context) error {
 	var err error
 	var file *os.File
 
-	if err := forceCreateDir("./internal/data/po_models"); err != nil {
+	if _, err := mkdirIfNotExist("./internal/data/po_models"); err != nil {
 		return err
 	}
 	for _, table := range strings.Split(pattern, ",") {
-		if file, err = os.Create("./internal/data/po_models/" + table + "_po_model.go"); err != nil {
+		if file, err = forceCreateFile("./internal/data/po_models/" + table + "_po_model.go"); err != nil {
 			return err
 		}
 		m := codegen.NewPoModelStructInfo(table, url, "po_models")
@@ -38,4 +38,3 @@ func GenModel(ctx *cli.Context) error {
 	}
 	return nil
 }
-

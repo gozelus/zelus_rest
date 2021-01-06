@@ -11,7 +11,7 @@ func exec(ctx rest.Context, sql string, f func() (int64, error)) error {
 	rows, err := f()
 	consume := time.Now().Sub(now).Milliseconds()
 	if err != nil {
-		logger.ErrorfWithStackWithContext(ctx, "[%dms] [rows:%d] FAIL SQL : `%s` error for %s", consume, rows, sql, err)
+		logger.ErrorfWithContext(ctx, "[%dms] [rows:%d] FAIL SQL : `%s` error for %s", consume, rows, sql, err)
 		return err
 	}
 	if consume <= 200 { // 200ms
