@@ -32,6 +32,15 @@ func GenRepo(ctx *cli.Context) error {
 		}
 		m := codegen.NewPoModelStructInfo(table, url, "repos")
 		r := codegen.NewRepoGener(file, m, "repos", moduleName)
+		errorsFile, ex, err := createIfNotExist("./internal/biz/repos/errors.go")
+		if err != nil {
+			return err
+		}
+		if !ex {
+			if err := r.GenErrorsCode(errorsFile); err != nil {
+				return err
+			}
+		}
 		if err = r.GenCode(); err != nil {
 			return err
 		}

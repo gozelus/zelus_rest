@@ -1,5 +1,20 @@
 package tpls
 
+var RepoNotFoundErrors = `package {{ .PkgName }}
+import (
+	"errors"
+	"gorm.io/gorm"
+)
+
+type RecordErrorNotFound struct {
+	Sql string
+	Err error
+}
+
+func IsRecordNotFound(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
+}
+`
 var RepoNewFuncTpl = `
 func New{{.RepoImpName}}(db db.MySQLDb) *{{.RepoImpName}} {
 	return &{{.RepoImpName}}{db: db}

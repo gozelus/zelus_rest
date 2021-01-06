@@ -29,6 +29,17 @@ func NewRepoGener(file io.Writer, model *PoModelStructInfo, pkgName, moduleName 
 	}
 }
 
+func (i *RepoGener) GenErrorsCode(w io.Writer) error {
+	t, err := template.New("repo package").Parse(tpls.RepoNotFoundErrors)
+	if err != nil {
+		return err
+	}
+	return t.Execute(w, struct {
+		PkgName string
+	}{
+		PkgName: i.pkgName,
+	})
+}
 func (i *RepoGener) GenCode() error {
 	tpl := `
 package ` + i.pkgName + `
