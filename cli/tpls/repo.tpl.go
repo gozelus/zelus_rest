@@ -21,7 +21,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 		Order("{{.OrderField.DbName}} desc").
 		Limit(int(limit + 1)).
 		Find(&resp); err != nil {
-		return nil, false, errors.WithStack(err)
+		return nil, false, errors.Wrap(err, "failed in repos")
 	}
 	hasMore = len(resp) > int(limit)
 	if hasMore {
@@ -41,7 +41,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 		Order("{{.OrderField.DbName}} desc").
 		Limit(int(limit + 1)).
 		Find(&resp); err != nil {
-		return nil, false, errors.WithStack(err)
+		return nil, false, errors.Wrap(err, "failed in repos")
 	}
 	hasMore = len(resp) > int(limit)
 	if hasMore {
@@ -58,7 +58,7 @@ func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}ByTx(ctx rest.Cont
 	db := tx.Table(ctx, "{{.TableName}}").
         Where("{{$firstField.DbName}} in (?)", {{$firstField.LowCamelName}}s)
 	if err := db.Find(&results); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "failed in repos")
 	}
 	for _, r := range results {
 		resp[r.{{$firstField.Name}}] = r
@@ -72,7 +72,7 @@ func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context,
 	db := repo.db.Table(ctx, "{{.TableName}}").
         Where("{{$firstField.DbName}} in (?)", {{$firstField.LowCamelName}}s)
 	if err := db.Find(&results); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "failed in repos")
 	}
 	for _, r := range results {
 		resp[r.{{$firstField.Name}}] = r
@@ -88,7 +88,7 @@ func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.FirstOrCreate(resp); err != nil {
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -98,7 +98,7 @@ func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.FirstOrCreate(resp); err != nil {
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -110,7 +110,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(c
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.First(resp); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "failed in repos")
 	}
 	return resp, nil
 }
@@ -120,7 +120,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx r
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.First(resp); err != nil {
-		return nil, errors.WithStack(err)
+		return nil, errors.Wrap(err, "failed in repos")
 	}
 	return resp, nil
 }
@@ -131,7 +131,7 @@ func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}ByTx
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Delete({{.ModelPkgName}}.{{.ModelName}}{});err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -140,7 +140,7 @@ func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Delete({{.ModelPkgName}}.{{.ModelName}}{});err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -151,7 +151,7 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}ByTx
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Updates(attr);err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -161,7 +161,7 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Updates(attr);err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
 	}
 	return nil
 } 
@@ -170,14 +170,14 @@ var RepoCreateFuncTpl = `
 // InsertByTx 默认生成的创建函数, 使用 tx 句柄
 func (repo *{{.RepoImpName}}) InsertByTx(ctx rest.Context, tx db.MySQLDb, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := tx.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
     }
 	return nil
 }
 // Insert 默认生成的创建函数
 func (repo *{{.RepoImpName}}) Insert(ctx rest.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := repo.db.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
-		return errors.WithStack(err)
+		return errors.Wrap(err, "failed in repos")
     }
 	return nil
 }

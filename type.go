@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/pkg/errors"
 	"io"
 	"net/http"
 	"time"
@@ -105,7 +106,7 @@ func NewServer(port int, opts ...Option) Server {
 			now := time.Now()
 			c.Next()
 			if err := c.GetError(); err != nil {
-				logger.WarnfWithContext(c, "method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.Method(), c.Path(), now.Sub(now).Milliseconds(), err, err)
+				logger.WarnfWithContext(c, "method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.Method(), c.Path(), now.Sub(now).Milliseconds(), errors.Cause(err), err)
 			} else {
 				duration := time.Now().Sub(now).Milliseconds()
 				if duration > 300 {
