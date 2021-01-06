@@ -3,18 +3,13 @@ package rest
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/gozelus/zelus_rest/core/bindding"
-	"io"
 	"math"
 	"net/http"
 	"strings"
 	"sync"
 
 	"github.com/go-playground/validator/v10"
-	"github.com/gozelus/zelus_rest/logger"
-	"github.com/pkg/errors"
-
 	"github.com/google/uuid"
 )
 
@@ -129,35 +124,17 @@ func (c *contextImp) Next() {
 	}
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
-	var reader io.Reader
+	var err error
 	if c.request.ContentLength > 0 && strings.Contains(c.request.Header.Get("Content-Type"), "application/json") {
-		reader = c.request.Body
+		err = binding.JSON.Bind(c.request, ptr)
 	} else {
-		reader = strings.NewReader("{}")
+		err = binding.Form.Bind(c.request, ptr)
 	}
-	err := json.NewDecoder(reader).Decode(ptr)
 	if err != nil {
 		return err
 	}
-	if err := c.validate.Struct(ptr); err != nil {
-		if _, ok := err.(*validator.InvalidValidationError); ok {
-			logger.Warnf("eer : %s ", err.Error())
-			return err
-		}
-		for _, err := range err.(validator.ValidationErrors) {
-			fmt.Printf("Namespace = %s \n", err.Namespace())
-			fmt.Printf("Field = %s \n", err.Field())
-			fmt.Printf("StructNamespace = %s \n", err.StructNamespace())
-			fmt.Printf("StructField = %s \n", err.StructField())
-			fmt.Printf("Tag = %s \n", err.Tag())
-			fmt.Printf("ActualTag = %s \n", err.ActualTag())
-			fmt.Printf("Kind = %s \n", err.Kind())
-			fmt.Printf("Type = %s \n", err.Type())
-			fmt.Printf("Value = %s \n", err.Value())
-			fmt.Printf("Param = %s \n", err.Param())
-			fmt.Println()
-		}
-		return errors.New("?")
+	if err = c.validate.Struct(ptr); err != nil {
+		return err
 	}
 	return nil
 }
