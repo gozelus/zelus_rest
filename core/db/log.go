@@ -18,6 +18,6 @@ func exec(ctx rest.Context, sql string, f func() (int64, error)) error {
 		logger.InfofWithContext(ctx, "[%dms] [rows:%d] SQL : `%s`", consume, rows, sql)
 		return nil
 	}
-	logger.WarnfWithStackWithContext(ctx, "[%dms] [rows:%d] SLOW SQL : `%s`", rows, consume, sql)
+	logger.WarnfWithContext(ctx, "[%dms] [rows:%d] SLOW SQL : `%s`", rows, consume, sql)
 	return nil
 }
