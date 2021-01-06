@@ -171,7 +171,7 @@ func (i *RepoGener) genInsertFunc() error {
 		TableName    string
 		ModelPkgName string
 	}{
-		ModelPkgName: "po_model",
+		ModelPkgName: "po_models",
 		RepoImpName:  strcase.ToCamel(i.model.ModelName + "RepoImp"),
 		ModelName:    i.model.ModelName,
 		TableName:    i.model.TableName,
