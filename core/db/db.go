@@ -54,13 +54,14 @@ func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	findSQL
 	whereSQL
 } {
-	d.db = d.db.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Table(name)
-	d.selectSQLImp = &selectSQLImp{db: d.db}
-	d.findSQLImp = &findSQLImp{db: d.db}
-	d.whereSQLImp = &whereSQLImp{db: d.db}
-	d.insertSQLImp = &insertSQLImp{db: d.db}
-	d.orderSQLImp = &orderSQLImp{db: d.db}
-	return d
+	result := &dbImp{}
+	result.db = d.db.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Table(name)
+	result.selectSQLImp = &selectSQLImp{db: result.db}
+	result.findSQLImp = &findSQLImp{db: result.db}
+	result.whereSQLImp = &whereSQLImp{db: result.db}
+	result.insertSQLImp = &insertSQLImp{db: result.db}
+	result.orderSQLImp = &orderSQLImp{db: result.db}
+	return result
 }
 
 func Open(dsn string) (MySQLDb, error) {
