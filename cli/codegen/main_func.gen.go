@@ -11,47 +11,14 @@ import (
 	"fmt"
 	"github.com/gozelus/zelus_rest"
 	"github.com/gozelus/zelus_rest/logger"
-	"gopkg.in/yaml.v2"
-	"os"
-	"path/filepath"
 	"{{ .ModuleName }}/internal/routes"
+	"{{ .ModuleName }}/config"
 	"reflect"
 	"runtime"
 )
 
-type Config struct {
-	Port  int ` + "`" + `yaml:"Port"` + "`" + `
-	Mysql struct {
-		DataSource string ` + "`" + `yaml:"DataSource"` + "`" + `
-	}` + "`" + `yaml:"Mysql"` + "`" + `
-}
-
 func main() {
-	env := os.Getenv("{{ .AppName }}-env")
-
-	configFileName := "config-dev.yaml"
-	if env == "production" {
-		configFileName = "config.yaml"
-	}
-	wd, err := os.Getwd()
-	if err != nil {
-		logger.Error(err)
-		os.Exit(1)
-	}
-	configYaml, err := os.Open(filepath.Join(wd, "/etc", configFileName))
-	if err != nil {
-		logger.Error(err)
-		os.Exit(1)
-	}
-
-	c := &Config{}
-	if err := yaml.NewDecoder(configYaml).Decode(c);err!=nil{
-		logger.Error(err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("\n run with config file : %s \n", configFileName)
-	s := rest.NewServer(c.Port)
+	s := rest.NewServer(config.Cfg.Port)
 	info := ""
 	for _, r := range routes.Routes {
 		funcName := runtime.FuncForPC(reflect.ValueOf(r.Handler).Pointer()).Name()
@@ -64,7 +31,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("will listen in : %d  .... \n", c.Port)
+	fmt.Printf("will listen in : %d  .... \n", config.Cfg.Port)
 
 	if err := s.Run(); err != nil {
 		logger.Errorf("add route err for : %s", err)

@@ -35,11 +35,23 @@ func GenApis(ctx *cli.Context) error {
 
 	apiFilePath := strings.TrimSpace(ctx.String(flagFile))
 	appName := strings.TrimSpace(ctx.String(flagApp))
+	// 尝试生成 config 文件
+	if _, err := mkdirIfNotExist("./config"); err != nil {
+		return err
+	}
+	cfgFile, ex, err := createIfNotExist("./config/cfg.go")
+	if err != nil {
+		return err
+	}
+	if !ex {
+		if err := codegen.NewConfigGenner(appName).GenCode(cfgFile); err != nil {
+			return err
+		}
+	}
 
 	// apiFileMerge 需要重新读取一次
 	var apiFileMergeCopy io.Reader
 	var apiFileMerge io.Reader
-	var err error
 	var moduleName string
 
 	moduleName, err = getModuleName()
