@@ -13,6 +13,7 @@ type MySQLDb interface {
 		insertSQL
 		selectSQL
 		findSQL
+		orderSQL
 	}
 	Begin() interface {
 		MySQLDb
@@ -29,6 +30,7 @@ type dbImp struct {
 	*insertSQLImp
 	*selectSQLImp
 	*findSQLImp
+	*orderSQLImp
 }
 
 func (d *dbImp) Commit() {
@@ -48,6 +50,7 @@ func (d *dbImp) Begin() interface {
 func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	insertSQL
 	selectSQL
+	orderSQL
 	findSQL
 	whereSQL
 } {
@@ -56,6 +59,7 @@ func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	d.findSQLImp = &findSQLImp{db: d.db}
 	d.whereSQLImp = &whereSQLImp{db: d.db}
 	d.insertSQLImp = &insertSQLImp{db: d.db}
+	d.orderSQLImp = &orderSQLImp{db: d.db}
 	return d
 }
 
