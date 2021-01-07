@@ -10,7 +10,7 @@ type selectSQLImp struct {
 }
 
 func (s *selectSQLImp) Select(args ...string) whereSQL {
-	return &whereSQLImp{db: s.db.Select(args)}
+	return &whereSQLImp{db: s.db.Select(args).WithContext(s.db.Statement.Context)}
 }
 
 var _ selectSQL = &selectSQLImp{}

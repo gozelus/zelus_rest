@@ -1,6 +1,8 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type whereSQL interface {
 	Where(query interface{}, args ...interface{}) interface {
@@ -20,7 +22,7 @@ func (w *whereSQLImp) Where(query interface{}, args ...interface{}) interface {
 	orderSQL
 	endSQL
 } {
-	db := w.db.Where(query, args...)
+	db := w.db.Where(query, args...).WithContext(w.db.Statement.Context)
 	return struct {
 		orderSQL
 		whereSQL
