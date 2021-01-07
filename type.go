@@ -30,6 +30,7 @@ type (
 		Handler HandlerFunc
 	}
 
+	// 用于控制流
 	Context interface {
 		context.Context
 
@@ -80,6 +81,13 @@ type Option = func(imp *Plugin)
 type Plugin struct {
 	Logger   HandlerFunc
 	Recovery HandlerFunc
+}
+
+// 初始化一个 context
+func BackgroundContext() Context {
+	c := newContext()
+	c.init(nil, nil)
+	return c
 }
 
 // NewServer 创建一个服务实例
