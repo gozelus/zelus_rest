@@ -78,17 +78,28 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	if val, ok := err.(StatusError); ok {
 		theError = val
 	}
-	_ = c.renderJSON(theError.GetCode(), struct {
+	resp := struct {
 		Code      int         `json:"code"`
 		Message   string      `json:"message"`
 		Data      interface{} `json:"data"`
 		RequestID string      `json:"request_id"`
+		Reason    struct {
+			Message string
+			Code    int
+		} `json:"reason"`
 	}{
 		Code:      theError.GetCode(),
 		Message:   theError.GetMessage(),
 		Data:      data,
 		RequestID: c.GetRequestID(),
-	})
+	}
+
+	if theError.GetReason() != nil {
+		resp.Reason.Code = theError.GetReason().GetReasonCode()
+		resp.Reason.Message = theError.GetReason().GetReasonMessage()
+	}
+
+	_ = c.renderJSON(theError.GetCode(), resp)
 }
 
 func (c *contextImp) Headers() map[string][]string {

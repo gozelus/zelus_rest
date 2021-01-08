@@ -18,6 +18,10 @@ type (
 		error
 		GetCode() int
 		GetMessage() string
+		GetReason() interface {
+			GetReasonMessage() string
+			GetReasonCode() int
+		}
 	}
 
 	// handlerFund 定义实际处理请求的函数
