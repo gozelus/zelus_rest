@@ -58,7 +58,7 @@ func GenApis(ctx *cli.Context) error {
 			return err
 		}
 	}
-	etcYaml, ex, err := createIfNotExist("./etc/" + appName + "-dev.yaml")
+	etcYaml, ex, err := createIfNotExist("./etc/" + appName + "-config-dev.yaml")
 	if err != nil {
 		return err
 	}
