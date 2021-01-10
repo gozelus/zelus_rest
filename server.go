@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"github.com/gozelus/zelus_rest/core"
 	"log"
 	"net/http"
 )
@@ -10,6 +11,7 @@ type serverImp struct {
 	*enginez
 	httpServer *http.Server
 	plugin     *Plugin
+	jwtUtils   *core.JwtUtils
 }
 
 // Use 加载中间件

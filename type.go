@@ -70,6 +70,8 @@ type (
 
 		init(http.ResponseWriter, *http.Request)
 		setHandlers(...HandlerFunc)
+		setUserID(int64)
+		setJwtUtils(utils jwtUtils)
 	}
 
 	// Middleware 中间件函数
@@ -151,15 +153,21 @@ func NewServer(port int, opts ...Option) Server {
 		server.use(server.plugin.Recovery)
 	}
 	if server.plugin.Authored == nil {
+		if server.plugin.JwtAk == nil {
+			server.plugin.JwtAk = func() (s string, s2 string) {
+				return "hi", "hello"
+			}
+		}
+		server.jwtUtils = core.NewJwtUtils(server.plugin.JwtAk())
 		server.plugin.Authored = func(c Context) {
+			c.setJwtUtils(server.jwtUtils)
 			if token, ok := c.Headers()["Authorization"]; ok && len(token) > 0 && len(token[0]) > 0 {
-				key, _ := server.plugin.JwtAk()
-				userID, newTokenStr, err := core.ValidateToken(key, token[0])
+				userID, newTokenStr, err := server.jwtUtils.ValidateToken(token[0])
 				if err != nil {
 					c.RenderErrorJSON(nil, statusUnauthorized)
 					return
 				}
-				c.SetUserID(userID)
+				c.setUserID(userID)
 				c.Next()
 				c.Set("jwt-token", newTokenStr)
 				return

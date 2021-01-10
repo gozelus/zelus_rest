@@ -20,6 +20,10 @@ const abortIndex int8 = math.MaxInt8 / 2
 
 var _ Context = &contextImp{}
 
+type jwtUtils interface {
+	NewToken(uid int64) (string, error)
+}
+
 type contextImp struct {
 	context.Context
 	request   *http.Request
@@ -38,10 +42,24 @@ type contextImp struct {
 	validate *validator.Validate
 	handlers []HandlerFunc
 	index    int8
+	jwtUtils jwtUtils
+}
+
+func (c *contextImp) setJwtUtils(utils jwtUtils) {
+	c.jwtUtils = utils
+}
+
+func (c *contextImp) setUserID(uid int64) {
+	c.Set("jwt-user-id", uid)
 }
 
 func (c *contextImp) SetUserID(uid int64) {
-	c.Set("jwt-user-id", uid)
+	token, err := c.jwtUtils.NewToken(uid)
+	if err != nil {
+		c.RenderErrorJSON(nil, statusUnauthorized)
+		return
+	}
+	c.Set("jwt-token", token)
 }
 
 func (c *contextImp) UserID() int64 {
