@@ -23,7 +23,7 @@ func (c *{{ $.Name }}Controller) {{ .Name }}(ctx rest.Context) {
 	req := &{{ $.TypesPkgName }}.{{ .RequestType }}{}
 	var err error 
 	if err := ctx.{{if ne .Method "GET" }}JSONBodyBind{{ else }}JSONQueryBind{{ end }}(req); err != nil {
-		ctx.RenderErrorJSON(nil, apiErrors.BadRequest.WithReason(err.Error()))
+		ctx.RenderErrorJSON(nil, apiErrors.BadRequest.WithReason("部分参数校验不通过", 40000))
 		return
 	}
 	if res, err = c.service.{{ .Name }}(ctx, req);err!=nil{

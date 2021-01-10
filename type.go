@@ -19,6 +19,7 @@ type (
 			GetReasonMessage() string
 			GetReasonCode() int
 		}
+		WithReason(string, int) StatusError
 	}
 
 	// handlerFund 定义实际处理请求的函数

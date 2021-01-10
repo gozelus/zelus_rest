@@ -58,22 +58,34 @@ type statusError struct {
 	Reason   *reason
 }
 
-func (s statusError) GetReason() interface {
+func (s *statusError) WithReason(msg string, code int) StatusError {
+	e := statusError{}
+	e.Reason = &reason{
+		Message: msg,
+		Code:    code,
+	}
+	e.RData = s.RData
+	e.RMessage = s.RMessage
+	e.RCode = s.RCode
+	return &e
+}
+
+func (s *statusError) GetReason() interface {
 	GetReasonMessage() string
 	GetReasonCode() int
 } {
 	return s.Reason
 }
 
-func (s statusError) Error() string {
+func (s *statusError) Error() string {
 	return s.RMessage
 }
 
-func (s statusError) GetCode() int {
+func (s *statusError) GetCode() int {
 	return s.RCode
 }
 
-func (s statusError) GetMessage() string {
+func (s *statusError) GetMessage() string {
 	return s.RMessage
 }
 
