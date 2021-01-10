@@ -83,18 +83,30 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
 }
+
+type standResp struct {
+	Code      int         `json:"code"`
+	Message   string      `json:"message"`
+	Data      interface{} `json:"data"`
+	RequestID string      `json:"request_id"`
+	Reason    struct {
+		Message string
+		Code    int
+	} `json:"reason"`
+	Token string `json:"token"`
+}
+
 func (c *contextImp) RenderOkJSON(data interface{}) {
-	_ = c.renderJSON(http.StatusOK, struct {
-		Code      int         `json:"code"`
-		Message   string      `json:"message"`
-		RequestID string      `json:"request_id"`
-		Data      interface{} `json:"data"`
-	}{
+	resp := standResp{
 		Code:      200,
 		Message:   "success",
 		Data:      data,
 		RequestID: c.GetRequestID(),
-	})
+	}
+	if token, ok := c.Get("jwt-token"); ok {
+		resp.Token = token.(string)
+	}
+	_ = c.renderJSON(http.StatusOK, resp)
 }
 
 func (c *contextImp) GetError() error {
@@ -107,16 +119,7 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	if val, ok := err.(StatusError); ok {
 		theError = val
 	}
-	resp := struct {
-		Code      int         `json:"code"`
-		Message   string      `json:"message"`
-		Data      interface{} `json:"data"`
-		RequestID string      `json:"request_id"`
-		Reason    struct {
-			Message string
-			Code    int
-		} `json:"reason"`
-	}{
+	resp := standResp{
 		Code:      theError.GetCode(),
 		Message:   theError.GetMessage(),
 		Data:      data,
@@ -126,6 +129,11 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	if theError.GetReason() != nil {
 		resp.Reason.Code = theError.GetReason().GetReasonCode()
 		resp.Reason.Message = theError.GetReason().GetReasonMessage()
+	}
+
+
+	if token, ok := c.Get("jwt-token"); ok {
+		resp.Token = token.(string)
 	}
 
 	_ = c.renderJSON(theError.GetCode(), resp)

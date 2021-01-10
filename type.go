@@ -4,12 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gozelus/zelus_rest/core"
-	"github.com/pkg/errors"
 	"io"
 	"net/http"
-	"time"
-
-	"github.com/gozelus/zelus_rest/logger"
 )
 
 type (
@@ -30,9 +26,10 @@ type (
 
 	// Route 最终挂载给 http 服务的函数
 	Route struct {
-		Method  string
-		Path    string
-		Handler HandlerFunc
+		Method             string
+		Path               string
+		Handler            HandlerFunc
+		NeedAuthentication bool
 	}
 
 	// 用于控制流
@@ -92,7 +89,7 @@ type Option = func(imp *Plugin)
 type Plugin struct {
 	Logger   HandlerFunc
 	Recovery HandlerFunc
-	Authored HandlerFunc // 默认实现为 jwt
+	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
 	// 用于设置 jwt ak
 	JwtAk func() (string, string)
 }
@@ -124,32 +121,11 @@ func NewServer(port int, opts ...Option) Server {
 
 	// 启动之前，检查下是否注入了 Logger 和 Recovery
 	if server.plugin.Logger == nil {
-		server.plugin.Logger = func(c Context) {
-			now := time.Now()
-			c.Next()
-			if err := c.GetError(); err != nil {
-				logger.WarnfWithContext(c, "method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.Method(), c.Path(), now.Sub(now).Milliseconds(), errors.Cause(err), err)
-			} else {
-				duration := time.Now().Sub(now).Milliseconds()
-				if duration > 300 {
-					logger.WarnfWithContext(c, "slow request -> method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), time.Now().Sub(now).Milliseconds())
-				} else {
-					logger.InfofWithContext(c, "ok request -> method : %s | path : %s | duration : %d ms", c.Method(), c.Path(), time.Now().Sub(now).Milliseconds())
-				}
-			}
-		}
+		server.plugin.Logger = loggerMiddleware
 		server.use(server.plugin.Logger)
 	}
 	if server.plugin.Recovery == nil {
-		server.plugin.Recovery = func(c Context) {
-			defer func() {
-				if err := recover(); err != nil {
-					logger.ErrorfWithStackWithContext(c, "recover err : %s", err)
-					c.RenderErrorJSON(nil, statusInternalServerError)
-				}
-			}()
-			c.Next()
-		}
+		server.plugin.Recovery = recoverMiddleware
 		server.use(server.plugin.Recovery)
 	}
 	if server.plugin.Authored == nil {
@@ -159,23 +135,9 @@ func NewServer(port int, opts ...Option) Server {
 			}
 		}
 		server.jwtUtils = core.NewJwtUtils(server.plugin.JwtAk())
-		server.plugin.Authored = func(c Context) {
-			c.setJwtUtils(server.jwtUtils)
-			if token, ok := c.Headers()["Authorization"]; ok && len(token) > 0 && len(token[0]) > 0 {
-				userID, newTokenStr, err := server.jwtUtils.ValidateToken(token[0])
-				if err != nil {
-					c.RenderErrorJSON(nil, statusUnauthorized)
-					return
-				}
-				c.setUserID(userID)
-				c.Next()
-				c.Set("jwt-token", newTokenStr)
-				return
-			}
-			c.RenderErrorJSON(nil, statusUnauthorized)
-			return
-		}
-		server.use(server.plugin.Authored)
+		server.plugin.Authored = authorMiddleware(server)
+		// 默认不适用，判断当 route 需要鉴权时再加入
+		// server.use(server.plugin.Authored)
 	}
 	return server
 }

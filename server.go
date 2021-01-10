@@ -25,9 +25,14 @@ func (s *serverImp) Use(middlrewares ...HandlerFunc) error {
 // AddRoute 挂载路由
 func (s *serverImp) AddRoute(routes ...Route) error {
 	for _, r := range routes {
-		if err := s.addRoute(r.Method, r.Path, r.Handler); err != nil {
-			log.Fatal(err)
-			return err
+		if r.NeedAuthentication && s.plugin.Authored != nil {
+			if err := s.addRoute(r.Method, r.Path, s.plugin.Authored(r.Handler)); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if err := s.addRoute(r.Method, r.Path, r.Handler); err != nil {
+				log.Fatal(err)
+			}
 		}
 	}
 	return nil
