@@ -16,7 +16,11 @@ import (
 
 type Config struct {
 	Port  int ` + "`" + `yaml:"Port"` + "`\n" +
-	`JwtKey string` + "`" + `yaml:"JwtKey"` + "`\n" +
+	`Jwt struct {
+		Key string ` + "`" + `yaml:"Key"` + "`" + `
+		Expire int64 ` + "`" + `yaml:"Expire"` + "`" + `
+		MinTimeToRefresh int64 ` + "`" + `yaml:"MinTimeToRefresh"` + "`" + `
+	} ` + "`" + `yaml:"Mysql"` + "`\n" +
 	`Mysql struct {
 		DataSource string ` + "`" + `yaml:"DataSource"` + "`" + `
 	} ` + "`" + `yaml:"Mysql"` + "`" + `

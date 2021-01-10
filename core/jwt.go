@@ -1,6 +1,7 @@
 package core
 
 import (
+	"errors"
 	"github.com/dgrijalva/jwt-go"
 	"time"
 )
@@ -46,8 +47,9 @@ func (u *JwtUtils) ValidateToken(tokenStr string) (int64, string, error) {
 			}
 			return cc.UserID, newTokenStr, nil
 		}
+		return cc.UserID, tokenStr, nil
 	}
-	return 0, "", err
+	return 0, "", errors.New("valid token")
 }
 func (u *JwtUtils) NewToken(uid int64) (string, error) {
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, &CustomClaims{

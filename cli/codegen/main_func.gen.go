@@ -18,7 +18,11 @@ import (
 )
 
 func main() {
-	s := rest.NewServer(config.Cfg.Port)
+	s := rest.NewServer(config.Cfg.Port, func(imp *rest.Plugin) {
+		imp.JwtAk = func() (s string, i int64, i2 int64) {
+			return config.Cfg.Jwt.Key, config.Cfg.Jwt.Expire, config.Cfg.Jwt.MinTimeToRefresh
+		}
+	})
 	info := ""
 	for _, r := range routes.Routes {
 		funcName := runtime.FuncForPC(reflect.ValueOf(r.Handler).Pointer()).Name()

@@ -8,7 +8,10 @@ import (
 var EtcYamlTpl = `
 AppName: {{ .AppName }}
 Port: 8080
-JwtKey: {{ .AppName }}-jwt-key # TODO to replace it
+Jwt:
+	Key: {{ .AppName }}-jwt-key # TODO replace it
+	Expire: 360
+	MinTimeToRefresh: 60
 `
 
 type EtcGenner struct {
