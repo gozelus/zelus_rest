@@ -52,7 +52,7 @@ func (u *JwtUtils) NewToken(uid int64) (string, error) {
 		StandardClaims: &jwt.StandardClaims{},
 		UserID:         uid,
 	})
-	newTokenStr, err := newToken.SignedString(u.Secret)
+	newTokenStr, err := newToken.SignedString([]byte(u.Secret))
 	if err != nil {
 		return "", err
 	}
