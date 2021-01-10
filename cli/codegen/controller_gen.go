@@ -148,7 +148,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 			if len(keys) < 2 {
 				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the handler name", line))
 			}
-			if len(keys) > 3 {
+			if len(keys) > 2 {
 				if keys[2] == "@auth" {
 					h.NeedAuthentication = true
 				} else {
