@@ -34,7 +34,7 @@ func (u *JwtUtils) ValidateToken(tokenStr string) (int64, string, error) {
 			ExpiresAt: time.Now().Unix() + u.Exp,
 		},
 	}, func(token *jwt.Token) (i interface{}, e error) {
-		return u.Key, nil
+		return []byte(u.Key), nil
 	}); err != nil {
 		return 0, "", err
 	}
