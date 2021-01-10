@@ -30,7 +30,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	var hasMore bool
 	if err := tx.Table(ctx, "{{.TableName}}").
-		Select("{{.SelectField.DbName}}").{{range .WhereFields}}
+		Select("{{.SelectField.DbName}}, {{ .OrderField.DbName }}").{{range .WhereFields}}
 		Where("{{.DbName}} = ?", {{.LowCamelName}}).{{end}}
 		Where("{{.OrderField.DbName}} < ?", {{.OrderField.LowCamelName}}).
 		Order("{{.OrderField.DbName}} desc").
@@ -50,7 +50,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	var hasMore bool
 	if err := repo.db.Table(ctx, "{{.TableName}}").
-		Select("{{.SelectField.DbName}}").{{range .WhereFields}}
+		Select("{{.SelectField.DbName}}, {{ .OrderField.DbName }}").{{range .WhereFields}}
 		Where("{{.DbName}} = ?", {{.LowCamelName}}).{{end}}
 		Where("{{.OrderField.DbName}} < ?", {{.OrderField.LowCamelName}}).
 		Order("{{.OrderField.DbName}} desc").
