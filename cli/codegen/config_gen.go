@@ -31,9 +31,9 @@ var Cfg *Config
 func init() {
 	env := os.Getenv("{{ .AppName }}-env")
 
-	configFileName := "config-dev.yaml"
+	configFileName := "{{ .AppName }}-config-dev.yaml"
 	if env == "production" {
-		configFileName = "config.yaml"
+		configFileName = "{{ .AppName }}-config.yaml"
 	}
 	wd, err := os.Getwd()
 	if err != nil {
