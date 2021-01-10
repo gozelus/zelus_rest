@@ -27,12 +27,13 @@ type Controller struct {
 	ServicesPkgName string
 }
 type handler struct {
-	Method       string
-	Path         string
-	Name         string
-	RequestType  string
-	ResponseType string
-	Comments     []string
+	Method             string
+	Path               string
+	Name               string
+	RequestType        string
+	ResponseType       string
+	NeedAuthentication bool
+	Comments           []string
 }
 type ControllerGenner struct {
 
@@ -145,6 +146,11 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 			}
 			if h == nil {
 				h = &handler{}
+			}
+			if len(keys) > 3 && keys[2] == "@auth" {
+				h.NeedAuthentication = true
+			} else {
+				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the auth tag", line))
 			}
 			h.Name = strcase.ToCamel(keys[1])
 			continue

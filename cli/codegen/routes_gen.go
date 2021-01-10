@@ -26,6 +26,7 @@ var Routes = []rest.Route {	{{ range $controller := .Controllers }} {{ range .Ha
 		Method:  "{{ .Method }}",
 		Path:    "{{ .Path }}",
 		Handler: {{ lower $controller.Name }}Controller.{{ .Name }},
+		NeedAuthentication: {{ .NeedAuthentication }},
 	},{{ end }}{{ end }}
 }
 `
