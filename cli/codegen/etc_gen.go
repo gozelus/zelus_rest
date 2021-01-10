@@ -5,13 +5,12 @@ import (
 	"text/template"
 )
 
-var EtcYamlTpl = `
-AppName: {{ .AppName }}
+var EtcYamlTpl = `AppName: {{ .AppName }}
 Port: 8080
 Jwt:
-	Key: {{ .AppName }}-jwt-key # TODO replace it
-	Expire: 360
-	MinTimeToRefresh: 60
+  Key: {{ .AppName }}-jwt-key # TODO replace it
+  Expire: 360
+  MinTimeToRefresh: 60
 `
 
 type EtcGenner struct {

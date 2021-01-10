@@ -20,7 +20,7 @@ type Config struct {
 		Key string ` + "`" + `yaml:"Key"` + "`" + `
 		Expire int64 ` + "`" + `yaml:"Expire"` + "`" + `
 		MinTimeToRefresh int64 ` + "`" + `yaml:"MinTimeToRefresh"` + "`" + `
-	} ` + "`" + `yaml:"Mysql"` + "`\n" +
+	} ` + "`" + `yaml:"Jwt"` + "`\n" +
 	`Mysql struct {
 		DataSource string ` + "`" + `yaml:"DataSource"` + "`" + `
 	} ` + "`" + `yaml:"Mysql"` + "`" + `
