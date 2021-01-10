@@ -40,6 +40,17 @@ type contextImp struct {
 	index    int8
 }
 
+func (c *contextImp) SetUserID(uid int64) {
+	c.Set("jwt-user-id", uid)
+}
+
+func (c *contextImp) UserID() int64 {
+	if val, ok := c.Get("jwt-user-id"); ok {
+		return val.(int64)
+	}
+	return 0
+}
+
 // contextImp 的构造函数
 func newContext() *contextImp {
 	c := contextImp{}

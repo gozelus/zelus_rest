@@ -4,6 +4,14 @@ import "net/http"
 
 // 一些预定好的错误
 var (
+	statusUnauthorized = &statusError{
+		RCode:    http.StatusUnauthorized,
+		RMessage: "status unauthorized",
+		Reason: &reason{
+			Message: "该接口需要登录",
+			Code:    40003,
+		},
+	}
 	statusMethodNotAllowed = &statusError{
 		RCode:    http.StatusMethodNotAllowed,
 		RMessage: "method not allowed",

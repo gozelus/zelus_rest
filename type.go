@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/gozelus/zelus_rest/core"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
@@ -41,6 +42,10 @@ type (
 		Headers() map[string][]string
 		Method() string
 		Path() string
+		// @Authored handler 的返回值才会有意义
+		UserID() int64
+		// 如果内部调用了此方法，会尝试生成 or 刷新一个 jwt 给客户端
+		SetUserID(int64)
 
 		File(name string) (io.Reader, error)
 		JSONBodyBind(v interface{}) error
@@ -85,6 +90,9 @@ type Option = func(imp *Plugin)
 type Plugin struct {
 	Logger   HandlerFunc
 	Recovery HandlerFunc
+	Authored HandlerFunc // 默认实现为 jwt
+	// 用于设置 jwt ak
+	JwtAk func() (string, string)
 }
 
 // 初始化一个 context
@@ -141,6 +149,25 @@ func NewServer(port int, opts ...Option) Server {
 			c.Next()
 		}
 		server.use(server.plugin.Recovery)
+	}
+	if server.plugin.Authored == nil {
+		server.plugin.Authored = func(c Context) {
+			if token, ok := c.Headers()["Authorization"]; ok && len(token) > 0 && len(token[0]) > 0 {
+				key, _ := server.plugin.JwtAk()
+				userID, newTokenStr, err := core.ValidateToken(key, token[0])
+				if err != nil {
+					c.RenderErrorJSON(nil, statusUnauthorized)
+					return
+				}
+				c.SetUserID(userID)
+				c.Next()
+				c.Set("jwt-token", newTokenStr)
+				return
+			}
+			c.RenderErrorJSON(nil, statusUnauthorized)
+			return
+		}
+		server.use(server.plugin.Authored)
 	}
 	return server
 }
