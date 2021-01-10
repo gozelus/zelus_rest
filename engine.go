@@ -15,6 +15,9 @@ type enginez struct {
 
 	// 用于取用 Context 实例
 	pool sync.Pool
+
+	// jwt
+	jwtUtils jwtUtils
 }
 
 func newEnginez() *enginez {
@@ -52,6 +55,7 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx := e.pool.Get().(Context)
 	// 2. reset the ctx
 	ctx.init(w, req)
+	ctx.setJwtUtils(e.jwtUtils)
 	ctx.setHandlers(append(e.middlewares, h)...)
 	// 3. pass ctx to handler and run it
 	ctx.Next()

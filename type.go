@@ -135,6 +135,7 @@ func NewServer(port int, opts ...Option) Server {
 			}
 		}
 		server.jwtUtils = core.NewJwtUtils(server.plugin.JwtAk())
+		server.enginez.jwtUtils = server.jwtUtils
 		server.plugin.Authored = authorMiddleware(server)
 		// 默认不适用，判断当 route 需要鉴权时再加入
 		// server.use(server.plugin.Authored)

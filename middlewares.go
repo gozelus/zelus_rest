@@ -9,7 +9,6 @@ import (
 var authorMiddleware = func(server *serverImp) func(HandlerFunc) HandlerFunc {
 	return func(handlerFunc HandlerFunc) HandlerFunc {
 		return func(ctx Context) {
-			ctx.setJwtUtils(server.jwtUtils)
 			if token, ok := ctx.Headers()["Authorization"]; ok && len(token) > 0 && len(token[0]) > 0 {
 				userID, newTokenStr, err := server.jwtUtils.ValidateToken(token[0])
 				if err != nil {
