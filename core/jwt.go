@@ -6,7 +6,6 @@ import (
 )
 
 type JwtUtils struct {
-	Key            string
 	Secret         string
 	Exp            int64
 	RefreshTimeGap int64
@@ -17,9 +16,8 @@ type CustomClaims struct {
 	*jwt.StandardClaims
 }
 
-func NewJwtUtils(key, secret string, exp, refreshTimeGap int64) *JwtUtils {
+func NewJwtUtils(secret string, exp, refreshTimeGap int64) *JwtUtils {
 	return &JwtUtils{
-		Key:            key,
 		Secret:         secret,
 		Exp:            exp,
 		RefreshTimeGap: refreshTimeGap,
@@ -34,7 +32,7 @@ func (u *JwtUtils) ValidateToken(tokenStr string) (int64, string, error) {
 			ExpiresAt: time.Now().Unix() + u.Exp,
 		},
 	}, func(token *jwt.Token) (i interface{}, e error) {
-		return []byte(u.Key), nil
+		return []byte(u.Secret), nil
 	}); err != nil {
 		return 0, "", err
 	}

@@ -91,7 +91,7 @@ type Plugin struct {
 	Recovery HandlerFunc
 	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
 	// 用于设置 jwt ak 过期时间
-	JwtAk func() (string, string, int64, int64)
+	JwtAk func() (string, int64, int64)
 }
 
 // 初始化一个 context
@@ -130,8 +130,8 @@ func NewServer(port int, opts ...Option) Server {
 	}
 	if server.plugin.Authored == nil {
 		if server.plugin.JwtAk == nil {
-			server.plugin.JwtAk = func() (s string, s2 string, exp int64, min int64) {
-				return "hi", "hello", 7 * 24 * 60 * 60, 3 * 24 * 60 * 60
+			server.plugin.JwtAk = func() (s2 string, exp int64, min int64) {
+				return "hello", 7 * 24 * 60 * 60, 3 * 24 * 60 * 60
 			}
 		}
 		server.jwtUtils = core.NewJwtUtils(server.plugin.JwtAk())
