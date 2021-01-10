@@ -15,7 +15,8 @@ import (
 )
 
 type Config struct {
-	Port  int ` + "`" + `yaml:"Port"` + "`" +
+	Port  int ` + "`" + `yaml:"Port"` + "`\n" +
+	`JwtKey string` + "`" + `yaml:"JwtKey"` + "`\n" +
 	`Mysql struct {
 		DataSource string ` + "`" + `yaml:"DataSource"` + "`" + `
 	} ` + "`" + `yaml:"Mysql"` + "`" + `

@@ -47,6 +47,25 @@ func GenApis(ctx *cli.Context) error {
 		if err := codegen.NewConfigGenner(appName).GenCode(cfgFile); err != nil {
 			return err
 		}
+		if err := logFinishAndFmt("./config/cfg.go"); err != nil {
+			return err
+		}
+	}
+
+	// 尝试生成默认 etc 文件
+	if _, err := mkdirIfNotExist("./etc"); err != nil {
+		if err != nil {
+			return err
+		}
+	}
+	etcYaml, ex, err := createIfNotExist("./etc/" + appName + "-dev.yaml")
+	if err != nil {
+		return err
+	}
+	if !ex {
+		if err := codegen.NewEtcGenner(appName).GenCode(etcYaml); err != nil {
+			return err
+		}
 	}
 
 	// apiFileMerge 需要重新读取一次

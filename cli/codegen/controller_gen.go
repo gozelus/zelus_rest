@@ -135,22 +135,25 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 		fmt.Println(color.BlueString("line : %s", line))
 		line = strings.TrimLeft(line, " ")
 		keys := strings.Split(line, " ")
+		fmt.Println(color.GreenString("keys : %v", keys))
 		if strings.HasPrefix(line, "//") {
 			h = &handler{}
 			h.Comments = append(h.Comments, line)
 			continue
 		}
 		if strings.HasPrefix(line, "@") {
-			if len(keys) < 2 {
-				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the handler name", line))
-			}
 			if h == nil {
 				h = &handler{}
 			}
-			if len(keys) > 3 && keys[2] == "@auth" {
-				h.NeedAuthentication = true
-			} else {
-				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the auth tag", line))
+			if len(keys) < 2 {
+				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the handler name", line))
+			}
+			if len(keys) > 3 {
+				if keys[2] == "@auth" {
+					h.NeedAuthentication = true
+				} else {
+					return errors.New(fmt.Sprintf("line : %s is valid, check if u have the auth tag", line))
+				}
 			}
 			h.Name = strcase.ToCamel(keys[1])
 			continue
