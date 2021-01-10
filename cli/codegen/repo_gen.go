@@ -151,7 +151,7 @@ func (i *RepoGener) genFindOneFuncs() error {
 
 // findMany函数
 func (i *RepoGener) genFindManyFuncs() error {
-	return i.genFuncByUniqIdx(tpls.RepoFindManyFuncTpl, true)
+	return i.genFuncByUniqIdx(tpls.RepoFindManyFuncTpl)
 }
 
 // firstOrCreate 函数
@@ -228,11 +228,8 @@ func (i *RepoGener) genFuncByUniqIdx(tpl string, onlyPrimary ...bool) error {
 		}
 		if idx.IsUniq {
 			// 寻找联合索引or主键
-			if len(onlyPrimary) > 0 {
-			} else {
-				if err := genFunc(idx); err != nil {
-					return err
-				}
+			if err := genFunc(idx); err != nil {
+				return err
 			}
 		}
 	}

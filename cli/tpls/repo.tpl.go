@@ -65,13 +65,14 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 	return resp, hasMore, nil
 }
 `
-var RepoFindManyFuncTpl = `{{$firstField := first .Fields}}
+var RepoFindManyFuncTpl = `{{$firstField := first .Fields}} {{ $remainFields := (slice .Fields 1) }}
 // FindManyWith{{$firstField.Name}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}ByTx(ctx rest.Context, tx db.MySQLDb, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}ByTx(ctx rest.Context, tx db.MySQLDb, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}, {{ range $remainFields }} {{ .LowCamelName }} {{ .TypeName }} {{ end }}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}{}
 	var results []*{{.ModelPkgName}}.{{.ModelName}}
 	db := tx.Table(ctx, "{{.TableName}}").
-        Where("{{$firstField.DbName}} in (?)", {{$firstField.LowCamelName}}s)
+        Where("{{$firstField.DbName}} in (?)", {{$firstField.LowCamelName}}s) 
+	{{ range $remainFields }} db = db.Where("{{ .DbName }} = ?", {{ .LowCamelName }}) {{ end }}
 	if err := db.Find(&results); err != nil {
 		return nil, errors.Wrap(err, "failed in repos")
 	}
@@ -81,11 +82,12 @@ func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}ByTx(ctx rest.Cont
 	return resp, nil
 }
 // FindManyWith{{$firstField.Name}} 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+func (repo *{{.RepoImpName}}) FindManyWith{{$firstField.Name}}(ctx rest.Context, {{$firstField.LowCamelName}}s []{{$firstField.TypeName}}, {{ range $remainFields }} {{ .LowCamelName }} {{ .TypeName }} {{ end }}) (map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := map[{{$firstField.TypeName}}]*{{.ModelPkgName}}.{{.ModelName}}{}
 	var results []*{{.ModelPkgName}}.{{.ModelName}}
 	db := repo.db.Table(ctx, "{{.TableName}}").
         Where("{{$firstField.DbName}} in (?)", {{$firstField.LowCamelName}}s)
+	{{ range $remainFields }} db = db.Where("{{ .DbName }} = ?", {{ .LowCamelName }}) {{ end }}
 	if err := db.Find(&results); err != nil {
 		return nil, errors.Wrap(err, "failed in repos")
 	}
