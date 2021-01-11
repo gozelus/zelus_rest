@@ -220,11 +220,6 @@ func GenApis(ctx *cli.Context) error {
 		return err
 	}
 
-	err = exec.Command("wire", "./internal/injector/wire_zelusCtl.go", "./internal/injector/wire_self.go").Run()
-	if err != nil {
-		fmt.Println(color.HiRedString("wire err for %s", err))
-		return err
-	}
 
 	if err := forceCreateDir(filepath.Join(dir, "routes")); err != nil {
 		return err
@@ -237,6 +232,12 @@ func GenApis(ctx *cli.Context) error {
 		return err
 	}
 	if err := logFinishAndFmt(routesFile.Name()); err != nil {
+		return err
+	}
+
+	err = exec.Command("wire", "./internal/injector/wire_zelusCtl.go", "./internal/injector/wire_self.go").Run()
+	if err != nil {
+		fmt.Println(color.HiRedString("wire err for %s", err))
 		return err
 	}
 	return nil
