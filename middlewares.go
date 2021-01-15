@@ -16,8 +16,8 @@ var authorMiddleware = func(server *serverImp) func(HandlerFunc) HandlerFunc {
 					return
 				}
 				ctx.setUserID(userID)
+				ctx.setJwtToken(newTokenStr)
 				handlerFunc(ctx)
-				ctx.Set("jwt-token", newTokenStr)
 				return
 			}
 			ctx.RenderErrorJSON(nil, statusUnauthorized)

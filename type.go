@@ -66,9 +66,11 @@ type (
 		Set(string, interface{})
 		Get(string) (interface{}, bool)
 
+		// private
 		init(http.ResponseWriter, *http.Request)
 		setHandlers(...HandlerFunc)
 		setUserID(int64)
+		setJwtToken(string)
 		setJwtUtils(utils jwtUtils)
 	}
 

@@ -49,6 +49,9 @@ func (c *contextImp) setJwtUtils(utils jwtUtils) {
 	c.jwtUtils = utils
 }
 
+func (c *contextImp) setJwtToken(tokenStr string) {
+	c.Set("jwt-token", tokenStr)
+}
 func (c *contextImp) setUserID(uid int64) {
 	c.Set("jwt-user-id", uid)
 }
@@ -59,7 +62,7 @@ func (c *contextImp) SetUserID(uid int64) {
 		c.RenderErrorJSON(nil, statusUnauthorized)
 		return
 	}
-	c.Set("jwt-token", token)
+	c.setJwtToken(token)
 }
 
 func (c *contextImp) UserID() int64 {
@@ -130,7 +133,6 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 		resp.Reason.Code = theError.GetReason().GetReasonCode()
 		resp.Reason.Message = theError.GetReason().GetReasonMessage()
 	}
-
 
 	if token, ok := c.Get("jwt-token"); ok {
 		resp.Token = token.(string)
