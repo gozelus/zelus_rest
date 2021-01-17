@@ -46,6 +46,7 @@ package ` + i.pkgName + `
 
 import (
 	"github.com/pkg/errors"
+	"gorm.io/gorm/clause"
 	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 	"{{ .ModuleName }}/internal/data/po_models"
