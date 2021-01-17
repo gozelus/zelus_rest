@@ -131,6 +131,16 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(c
 	}
 	return resp, nil
 }
+// FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
+func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTxForUpdate(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
+	db := tx.Table(ctx, "{{$.TableName}}").Clauses(clause.Locking{Strength: "UPDATE"}).{{range $i, $field := .Fields}}
+        Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
+	if err := db.First(resp); err != nil {
+		return nil, errors.Wrap(err, "failed in repos")
+	}
+	return resp, nil
+}
 // FindOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
 func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
