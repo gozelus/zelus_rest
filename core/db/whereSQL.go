@@ -22,6 +22,7 @@ func (w *whereSQLImp) Where(query interface{}, args ...interface{}) interface {
 	orderSQL
 	endSQL
 } {
+	w.db = w.db.Where(query, args...)
 	return struct {
 		orderSQL
 		whereSQL
