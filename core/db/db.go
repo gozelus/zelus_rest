@@ -14,6 +14,7 @@ type MySQLDb interface {
 		selectSQL
 		findSQL
 		orderSQL
+		clausesSQL
 	}
 	Begin() interface {
 		MySQLDb
@@ -31,6 +32,7 @@ type dbImp struct {
 	*selectSQLImp
 	*findSQLImp
 	*orderSQLImp
+	*clausesSQLImp
 }
 
 func (d *dbImp) Commit() {
@@ -53,6 +55,7 @@ func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	orderSQL
 	findSQL
 	whereSQL
+	clausesSQL
 } {
 	result := &dbImp{}
 	result.db = d.db.WithContext(ctx).Session(&gorm.Session{NewDB: true}).Table(name)
@@ -61,6 +64,7 @@ func (d *dbImp) Table(ctx rest.Context, name string) interface {
 	result.whereSQLImp = &whereSQLImp{db: result.db}
 	result.insertSQLImp = &insertSQLImp{db: result.db}
 	result.orderSQLImp = &orderSQLImp{db: result.db}
+	result.clausesSQLImp = &clausesSQLImp{db: result.db}
 	return result
 }
 

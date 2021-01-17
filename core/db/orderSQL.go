@@ -10,8 +10,7 @@ type orderSQLImp struct {
 }
 
 func (o *orderSQLImp) Order(orderField string) limitSQL {
-	db := o.db.Order(orderField).WithContext(o.db.Statement.Context)
-	return &limitSQLImp{db: db}
+	return &limitSQLImp{db: o.db}
 }
 
 var _ orderSQL = &orderSQLImp{}

@@ -22,14 +22,13 @@ func (w *whereSQLImp) Where(query interface{}, args ...interface{}) interface {
 	orderSQL
 	endSQL
 } {
-	db := w.db.Where(query, args...).WithContext(w.db.Statement.Context)
 	return struct {
 		orderSQL
 		whereSQL
 		endSQL
 	}{
-		whereSQL: &whereSQLImp{db: db},
-		orderSQL: &orderSQLImp{db: db},
+		whereSQL: &whereSQLImp{db: w.db},
+		orderSQL: &orderSQLImp{db: w.db},
 		endSQL: &struct {
 			*findSQLImp
 			*updateSQLImp
@@ -38,12 +37,12 @@ func (w *whereSQLImp) Where(query interface{}, args ...interface{}) interface {
 			*firstOrCreateSQLImp
 			*firstSQLImp
 		}{
-			firstSQLImp:         &firstSQLImp{db: db},
-			firstOrCreateSQLImp: &firstOrCreateSQLImp{db: db},
-			findSQLImp:          &findSQLImp{db: db},
-			updateSQLImp:        &updateSQLImp{db: db},
-			deleteSQLImp:        &deleteSQLImp{db: db},
-			insertSQLImp:        &insertSQLImp{db: db},
+			firstSQLImp:         &firstSQLImp{db: w.db},
+			firstOrCreateSQLImp: &firstOrCreateSQLImp{db: w.db},
+			findSQLImp:          &findSQLImp{db: w.db},
+			updateSQLImp:        &updateSQLImp{db: w.db},
+			deleteSQLImp:        &deleteSQLImp{db: w.db},
+			insertSQLImp:        &insertSQLImp{db: w.db},
 		},
 	}
 }
