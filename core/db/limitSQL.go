@@ -13,6 +13,6 @@ type limitSQLImp struct {
 }
 
 func (l *limitSQLImp) Limit(limit int) findSQL {
-	i := &findSQLImp{db: l.db}
+	i := &findSQLImp{db: l.db.Limit(limit)}
 	return i
 }

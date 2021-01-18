@@ -3,30 +3,14 @@ package db
 import "gorm.io/gorm"
 
 type orderSQL interface {
-	Order(string) interface {
-		limitSQL
-		findSQL
-	}
+	Order(string) limitSQL
 }
 type orderSQLImp struct {
 	db *gorm.DB
 }
 
-func (o *orderSQLImp) Order(orderField string) interface{
-	limitSQL
-	findSQL
-} {
-	return struct {
-		limitSQL
-		findSQL
-	}{
-		limitSQL: &limitSQLImp{
-			db: o.db,
-		},
-		findSQL: &findSQLImp{
-			db: o.db,
-		},
-	}
+func (o *orderSQLImp) Order(orderField string) limitSQL {
+	return &limitSQLImp{db:o.db.Order(orderField)}
 }
 
 var _ orderSQL = &orderSQLImp{}
