@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/gozelus/zelus_rest/core"
+	"github.com/gozelus/zelus_rest/logger"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"net/http"
 )
@@ -96,7 +98,7 @@ type Plugin struct {
 	Logger   HandlerFunc
 	Recovery HandlerFunc
 	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
-	Metrics  HandlerFunc // prometheus
+	Metrics  HandlerFunc                   // prometheus
 	// 用于设置 jwt ak 过期时间
 	JwtAk func() (string, int64, int64)
 }
@@ -125,6 +127,15 @@ func NewServer(port int, opts ...Option) Server {
 	}
 	server.httpServer.Handler = server.enginez
 	server.plugin = p
+
+	// 开启 prometheus 监听
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		logger.Infof("prometheus list in 8888 ...")
+		if err := http.ListenAndServe("0.0.0.0:8888", nil); err != nil {
+			panic(err)
+		}
+	}()
 
 	// 启动之前，检查下是否注入了 Logger 和 Recovery
 	if server.plugin.Logger == nil {
