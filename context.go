@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"github.com/gozelus/zelus_rest/core/bindding"
@@ -29,6 +30,10 @@ type contextImp struct {
 	request   *http.Request
 	resWriter http.ResponseWriter
 
+	queryMap           map[string]string
+	requestBodyJsonStr string
+	httpCode           int
+
 	// err 用于存储中间可能发生的错误
 	err error
 	// Keys 用于在控制流中传递内容
@@ -43,6 +48,18 @@ type contextImp struct {
 	handlers []HandlerFunc
 	index    int8
 	jwtUtils jwtUtils
+}
+
+func (c *contextImp) QueryMap() map[string]string {
+	return c.queryMap
+}
+
+func (c *contextImp) RequestBodyJsonStr() string {
+	return c.requestBodyJsonStr
+}
+
+func (c *contextImp) HttpCode() int {
+	return c.httpCode
 }
 
 func (c *contextImp) setJwtUtils(utils jwtUtils) {
@@ -85,6 +102,19 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.keys = map[string]interface{}{}
 	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
+
+	// copy request body
+	requestBodyBufferWriter := bytes.NewBufferString("")
+	if _, err := io.Copy(requestBodyBufferWriter, req.Body); err != nil {
+		panic(err)
+	}
+	c.requestBodyJsonStr = requestBodyBufferWriter.String()
+
+	// let query to map
+	c.queryMap = map[string]string{}
+	for k := range req.URL.Query() {
+		c.queryMap[k] = req.URL.Query().Get(k)
+	}
 }
 
 type standResp struct {
@@ -214,8 +244,11 @@ func (c *contextImp) abort() {
 }
 func (c *contextImp) renderJSON(code int, obj interface{}) error {
 	defer c.abort()
+
 	c.resWriter.Header().Add("Content-Type", "application/json; charset=utf-8")
 	c.resWriter.WriteHeader(code)
+	c.httpCode = code
+
 	jsonBytes, err := json.Marshal(obj)
 	if err != nil {
 		return err

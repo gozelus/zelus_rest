@@ -40,6 +40,9 @@ type (
 		Headers() map[string][]string
 		Method() string
 		Path() string
+		HttpCode() int
+		QueryMap() map[string]string
+		RequestBodyJsonStr() string
 		// @Authored handler 的返回值才会有意义
 		UserID() int64
 		// 如果内部调用了此方法，会尝试生成 or 刷新一个 jwt 给客户端
@@ -93,6 +96,7 @@ type Plugin struct {
 	Logger   HandlerFunc
 	Recovery HandlerFunc
 	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
+	Metrics  HandlerFunc // prometheus
 	// 用于设置 jwt ak 过期时间
 	JwtAk func() (string, int64, int64)
 }
@@ -130,6 +134,10 @@ func NewServer(port int, opts ...Option) Server {
 	if server.plugin.Recovery == nil {
 		server.plugin.Recovery = recoverMiddleware
 		server.use(server.plugin.Recovery)
+	}
+	if server.plugin.Metrics == nil {
+		server.plugin.Metrics = httpMetricsMiddleware
+		server.use(server.plugin.Metrics)
 	}
 	if server.plugin.Authored == nil {
 		if server.plugin.JwtAk == nil {
