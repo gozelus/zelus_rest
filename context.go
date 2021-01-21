@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"github.com/gozelus/zelus_rest/core/bindding"
 	"io"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"strings"
@@ -104,11 +105,10 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	c.index = -1
 
 	// copy request body
-	requestBodyBufferWriter := bytes.NewBufferString("")
-	if _, err := io.Copy(requestBodyBufferWriter, req.Body); err != nil {
-		panic(err)
-	}
-	c.requestBodyJsonStr = requestBodyBufferWriter.String()
+	bodyBytes, _ := ioutil.ReadAll(req.Body)
+	c.requestBodyJsonStr = string(bodyBytes)
+	req.Body.Close()  //  must close
+	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	// let query to map
 	c.queryMap = map[string]string{}
