@@ -66,7 +66,7 @@ var recoverMiddleware = func(c Context) {
 var loggerMiddleware = func(c Context) {
 	now := time.Now()
 	c.Next()
-	logger.InfoWithContext(c, "query map : %v | json body : %s", c.QueryMap(), c.RequestBodyJsonStr())
+	logger.InfofWithContext(c, "query map : %v | json body : %s", c.QueryMap(), c.RequestBodyJsonStr())
 	if err := c.GetError(); err != nil {
 		logger.WarnfWithContext(c, "bad request -> [%d] | method : %s | path : %s | duration : %d ms | err : %T -> %+v", c.HttpCode(), c.Method(), c.Path(), now.Sub(now).Milliseconds(), errors.Cause(err), err)
 	} else {
