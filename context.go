@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 	"github.com/gozelus/zelus_rest/core/bindding"
 	"io"
 	"io/ioutil"
@@ -11,20 +13,18 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-
-	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
+	"time"
 )
 
 // abortIndex 一个极大值
 // 一定比 handlers 数量大，导致 next 函数执行中断
 const abortIndex int8 = math.MaxInt8 / 2
 
-var _ Context = &contextImp{}
-
 type jwtUtils interface {
 	NewToken(uid int64) (string, error)
 }
+
+var _ context.Context = &contextImp{}
 
 type contextImp struct {
 	context.Context
@@ -96,8 +96,11 @@ func newContext() *contextImp {
 	c.validate = validator.New()
 	return &c
 }
-func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
+func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *time.Duration) {
 	c.Context = context.Background()
+	if timeOut != nil {
+		c.Context, _ = context.WithTimeout(c.Context, *timeOut)
+	}
 	c.request = req
 	c.resWriter = w
 	c.keys = map[string]interface{}{}
@@ -107,7 +110,7 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request) {
 	// copy request body
 	bodyBytes, _ := ioutil.ReadAll(req.Body)
 	c.requestBodyJsonStr = string(bodyBytes)
-	req.Body.Close()  //  must close
+	req.Body.Close() //  must close
 	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	// let query to map

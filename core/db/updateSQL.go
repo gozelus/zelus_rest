@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 )
 
@@ -18,7 +17,7 @@ func (u *updateSQLImp) Updates(attrs map[string]interface{}) error {
 	db := u.db.Session(&gorm.Session{DryRun: true})
 	stmt := db.Updates(attrs).Statement
 	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
-	ctx := u.db.Statement.Context.(rest.Context)
+	ctx := u.db.Statement.Context
 
 	return exec(ctx, sql, func() (int64, error) {
 		result := u.db.Updates(attrs)

@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 )
 
@@ -17,7 +16,7 @@ func (d *deleteSQLImp) Delete(dest interface{}) error {
 	db := d.db.Session(&gorm.Session{DryRun: true})
 	stmt := db.Delete(dest).Statement
 	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
-	ctx := d.db.Statement.Context.(rest.Context)
+	ctx := d.db.Statement.Context
 
 	return exec(ctx, sql, func() (int64, error) {
 		result := d.db.Delete(dest)

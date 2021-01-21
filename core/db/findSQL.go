@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +19,7 @@ func (f *findSQLImp) Find(dest interface{}) error {
 	db := f.db.Session(&gorm.Session{DryRun: true})
 	stmt := db.Find(dest).Statement
 	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
-	ctx := f.db.Statement.Context.(rest.Context)
+	ctx := f.db.Statement.Context
 
 	return exec(ctx, sql, func() (int64, error) {
 		result := f.db.Find(dest)

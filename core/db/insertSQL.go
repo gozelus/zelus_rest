@@ -1,7 +1,6 @@
 package db
 
 import (
-	"github.com/gozelus/zelus_rest"
 	"gorm.io/gorm"
 )
 
@@ -20,7 +19,7 @@ func (i *insertSQLImp) Insert(dest interface{}) error {
 	db := i.db.Session(&gorm.Session{DryRun: true})
 	stmt := db.Create(dest).Statement
 	sql := db.Dialector.Explain(stmt.SQL.String(), stmt.Vars...)
-	ctx := i.db.Statement.Context.(rest.Context)
+	ctx := i.db.Statement.Context
 
 	return exec(ctx, sql, func() (int64, error) {
 		result := i.db.Create(dest)

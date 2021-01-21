@@ -1,14 +1,14 @@
 package db
 
 import (
-	"github.com/gozelus/zelus_rest"
+	"context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 type MySQLDb interface {
-	Table(ctx rest.Context, name string) interface {
+	Table(ctx context.Context, name string) interface {
 		whereSQL
 		insertSQL
 		selectSQL
@@ -49,7 +49,7 @@ func (d *dbImp) Begin() interface {
 	return &dbImp{db: d.db.Begin()}
 }
 
-func (d *dbImp) Table(ctx rest.Context, name string) interface {
+func (d *dbImp) Table(ctx context.Context, name string) interface {
 	insertSQL
 	selectSQL
 	orderSQL

@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"io"
 	"net/http"
+	"time"
 )
 
 type (
@@ -72,7 +73,7 @@ type (
 		Get(string) (interface{}, bool)
 
 		// private
-		init(http.ResponseWriter, *http.Request)
+		init(http.ResponseWriter, *http.Request, *time.Duration)
 		setHandlers(...HandlerFunc)
 		setUserID(int64)
 		setJwtToken(string)
@@ -99,14 +100,17 @@ type Plugin struct {
 	Recovery HandlerFunc
 	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
 	Metrics  HandlerFunc                   // prometheus
+
 	// 用于设置 jwt ak 过期时间
 	JwtAk func() (string, int64, int64)
+	// 设置请求限时，默认1000ms
+	ReqTimeOut *time.Duration
 }
 
 // 初始化一个 context
 func BackgroundContext() Context {
 	c := newContext()
-	c.init(nil, nil)
+	c.init(nil, nil, nil)
 	return c
 }
 
@@ -136,6 +140,12 @@ func NewServer(port int, opts ...Option) Server {
 			panic(err)
 		}
 	}()
+
+	if server.plugin.ReqTimeOut == nil {
+		timeOut := time.Millisecond * 1000
+		server.plugin.ReqTimeOut = &timeOut
+	}
+	server.enginez.timeout = server.plugin.ReqTimeOut
 
 	// 启动之前，检查下是否注入了 Logger 和 Recovery
 	if server.plugin.Logger == nil {

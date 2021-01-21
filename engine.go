@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"path"
 	"sync"
+	"time"
 )
 
 type enginez struct {
@@ -18,6 +19,9 @@ type enginez struct {
 
 	// jwt
 	jwtUtils jwtUtils
+
+	// timeout default 1000 ms
+	timeout *time.Duration
 }
 
 func newEnginez() *enginez {
@@ -54,7 +58,7 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	// 1. get ctx from pool
 	ctx := e.pool.Get().(Context)
 	// 2. reset the ctx
-	ctx.init(w, req)
+	ctx.init(w, req, e.timeout)
 	ctx.setJwtUtils(e.jwtUtils)
 	ctx.setHandlers(append(e.middlewares, h)...)
 	// 3. pass ctx to handler and run it

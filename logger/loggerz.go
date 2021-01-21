@@ -2,6 +2,7 @@ package logger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -216,52 +217,52 @@ func Warnf(str string, args ...interface{}) {
 func Errorf(str string, args ...interface{}) {
 	errorz(fmt.Sprintf(str, args...))
 }
-func InfoWithStackWithContext(ctx Context, v ...interface{}) {
+func InfoWithStackWithContext(ctx context.Context, v ...interface{}) {
 	infoWithStackWithContext(ctx, fmt.Sprint(v))
 }
-func DebugWithStackWithContext(ctx Context, v ...interface{}) {
+func DebugWithStackWithContext(ctx context.Context, v ...interface{}) {
 	debugWithStackWithContext(ctx, fmt.Sprint(v))
 }
-func WarnWithStackWithContext(ctx Context, v ...interface{}) {
+func WarnWithStackWithContext(ctx context.Context, v ...interface{}) {
 	warnWithStackWithContext(ctx, fmt.Sprint(v))
 }
-func ErrorWithStackWithContext(ctx Context, v ...interface{}) {
+func ErrorWithStackWithContext(ctx context.Context, v ...interface{}) {
 	errorzWithStackWithContext(ctx, fmt.Sprint(v))
 }
-func InfofWithStackWithContext(ctx Context, str string, args ...interface{}) {
+func InfofWithStackWithContext(ctx context.Context, str string, args ...interface{}) {
 	infoWithStackWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func DebugfWithStackWithContext(ctx Context, str string, args ...interface{}) {
+func DebugfWithStackWithContext(ctx context.Context, str string, args ...interface{}) {
 	debugWithStackWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func WarnfWithStackWithContext(ctx Context, str string, args ...interface{}) {
+func WarnfWithStackWithContext(ctx context.Context, str string, args ...interface{}) {
 	warnWithStackWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func ErrorfWithStackWithContext(ctx Context, str string, args ...interface{}) {
+func ErrorfWithStackWithContext(ctx context.Context, str string, args ...interface{}) {
 	errorzWithStackWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func InfoWithContext(ctx Context, v ...interface{}) {
+func InfoWithContext(ctx context.Context, v ...interface{}) {
 	infoWithContext(ctx, fmt.Sprint(v))
 }
-func DebugWithContext(ctx Context, v ...interface{}) {
+func DebugWithContext(ctx context.Context, v ...interface{}) {
 	debugWithContext(ctx, fmt.Sprint(v))
 }
-func WarnWithContext(ctx Context, v ...interface{}) {
+func WarnWithContext(ctx context.Context, v ...interface{}) {
 	warnWithContext(ctx, fmt.Sprint(v))
 }
-func ErrorWithContext(ctx Context, v ...interface{}) {
+func ErrorWithContext(ctx context.Context, v ...interface{}) {
 	errorzWithContext(ctx, fmt.Sprint(v))
 }
-func InfofWithContext(ctx Context, str string, args ...interface{}) {
+func InfofWithContext(ctx context.Context, str string, args ...interface{}) {
 	infoWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func DebugfWithContext(ctx Context, str string, args ...interface{}) {
+func DebugfWithContext(ctx context.Context, str string, args ...interface{}) {
 	debugWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func WarnfWithContext(ctx Context, str string, args ...interface{}) {
+func WarnfWithContext(ctx context.Context, str string, args ...interface{}) {
 	warnWithContext(ctx, fmt.Sprintf(str, args...))
 }
-func ErrorfWithContext(ctx Context, str string, args ...interface{}) {
+func ErrorfWithContext(ctx context.Context, str string, args ...interface{}) {
 	errorzWithContext(ctx, fmt.Sprintf(str, args...))
 }
 func warnWithStack(msg string) {
@@ -288,28 +289,28 @@ func debug(msg string) {
 func info(msg string) {
 	outputWithContext(nil, InfoLogLevel, msg)
 }
-func warnWithStackWithContext(ctx Context, msg string) {
+func warnWithStackWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, WarnLogLevel, formatWithCaller(msg, skipStack))
 }
-func errorzWithStackWithContext(ctx Context, msg string) {
+func errorzWithStackWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, ErrorLogLevel, formatWithCaller(msg, skipStack))
 }
-func debugWithStackWithContext(ctx Context, msg string) {
+func debugWithStackWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, DebugLogLevel, formatWithCaller(msg, skipStack))
 }
-func infoWithStackWithContext(ctx Context, msg string) {
+func infoWithStackWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, InfoLogLevel, formatWithCaller(msg, skipStack))
 }
-func warnWithContext(ctx Context, msg string) {
+func warnWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, WarnLogLevel, msg)
 }
-func errorzWithContext(ctx Context, msg string) {
+func errorzWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, ErrorLogLevel, msg)
 }
-func debugWithContext(ctx Context, msg string) {
+func debugWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, DebugLogLevel, msg)
 }
-func infoWithContext(ctx Context, msg string) {
+func infoWithContext(ctx context.Context, msg string) {
 	outputWithContext(ctx, InfoLogLevel, msg)
 }
 
@@ -323,7 +324,7 @@ type logEntry struct {
 	Level     LogLevel        `json:"-"`
 }
 
-func outputWithContext(ctx Context, level LogLevel, msg string) {
+func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 	if atomic.LoadUint32(&initialized) == 0 {
 		MustSetup(getDefaultConf())
 	}
@@ -334,7 +335,9 @@ func outputWithContext(ctx Context, level LogLevel, msg string) {
 			Level:     level,
 		}
 		if ctx != nil {
-			entry.ContextID = ctx.GetRequestID()
+			if restCtx, ok := ctx.(Context); ok {
+				entry.ContextID = restCtx.GetRequestID()
+			}
 		}
 		switch entry.Level {
 		case DebugLogLevel:
