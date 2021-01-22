@@ -106,17 +106,19 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *tim
 	c.keys = map[string]interface{}{}
 	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
+	c.queryMap = map[string]string{}
 
 	// copy request body
-	bodyBytes, _ := ioutil.ReadAll(req.Body)
-	c.requestBodyJsonStr = string(bodyBytes)
-	req.Body.Close() //  must close
-	req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	if req != nil {
+		bodyBytes, _ := ioutil.ReadAll(req.Body)
+		c.requestBodyJsonStr = string(bodyBytes)
+		req.Body.Close() //  must close
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
-	// let query to map
-	c.queryMap = map[string]string{}
-	for k := range req.URL.Query() {
-		c.queryMap[k] = req.URL.Query().Get(k)
+		// let query to map
+		for k := range req.URL.Query() {
+			c.queryMap[k] = req.URL.Query().Get(k)
+		}
 	}
 }
 
