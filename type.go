@@ -96,10 +96,11 @@ type (
 
 type Option = func(imp *Plugin)
 type Plugin struct {
-	Logger   HandlerFunc
-	Recovery HandlerFunc
-	Authored func(HandlerFunc) HandlerFunc // 默认实现为 jwt
-	Metrics  HandlerFunc                   // prometheus
+	Logger      HandlerFunc
+	Recovery    HandlerFunc
+	Authored    func(HandlerFunc) HandlerFunc // 默认实现为 jwt
+	Metrics     HandlerFunc                   // prometheus
+	MetricsPort int
 
 	// 用于设置 jwt ak 过期时间
 	JwtAk func() (string, int64, int64)
@@ -132,11 +133,15 @@ func NewServer(port int, opts ...Option) Server {
 	server.httpServer.Handler = server.enginez
 	server.plugin = p
 
+	if server.plugin.MetricsPort == 0 {
+		server.plugin.MetricsPort = 8888
+	}
+
 	// 开启 prometheus 监听
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
-		logger.Infof("prometheus list in 8888 ...")
-		if err := http.ListenAndServe("0.0.0.0:8888", nil); err != nil {
+		logger.Infof("prometheus list in %s ...", server.plugin.MetricsPort)
+		if err := http.ListenAndServe(fmt.Sprintf("0.0.0.0:%d", server.plugin.MetricsPort), nil); err != nil {
 			panic(err)
 		}
 	}()

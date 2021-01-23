@@ -4,6 +4,7 @@ var RepoNotFoundErrors = `package {{ .PkgName }}
 import (
 	"errors"
 	"gorm.io/gorm"
+	"context"
 )
 
 type RecordErrorNotFound struct {
@@ -26,7 +27,7 @@ type {{.RepoImpName}} struct {
 `
 var RepoListFuncTpl = `
 // List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}ByTx 根据索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}ByTx(ctx rest.Context,tx db.MySQLDb, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
+func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}ByTx(ctx context.Context,tx db.MySQLDb, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	var hasMore bool
 	if err := tx.Table(ctx, "{{.TableName}}").
@@ -46,7 +47,7 @@ func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{
 }
 
 // List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}} 根据索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}(ctx rest.Context, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
+func (repo *{{.RepoImpName}}) List{{.SelectField.Name}}By{{range .WhereFields}}{{.Name}}{{end}}OrderBy{{.OrderField.Name}}(ctx context.Context, {{range .WhereFields}}{{.LowCamelName}} {{.TypeName}},{{end}} limit int64, {{.OrderField.LowCamelName}} {{.OrderField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, bool, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	var hasMore bool
 	if err := repo.db.Table(ctx, "{{.TableName}}").
@@ -70,7 +71,7 @@ var RepoFindManyFuncTpl = `
 {{ if not (eq $fieldsLength 1) }}
 {{ $queryFields := ( slice .Fields 0 (add $fieldsLength -1) ) }}
 {{ $mutiQueryField := ( last .Fields ) }}
-func (repo *{{ .RepoImpName }}) FindManyWith{{ range $queryFields }}{{ .Name }}{{ end }}{{ $mutiQueryField.Name }}s(ctx rest.Context, {{ range $queryFields }}{{ .LowCamelName }} {{ .TypeName }}{{ end }}, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
+func (repo *{{ .RepoImpName }}) FindManyWith{{ range $queryFields }}{{ .Name }}{{ end }}{{ $mutiQueryField.Name }}s(ctx context.Context, {{ range $queryFields }}{{ .LowCamelName }} {{ .TypeName }}{{ end }}, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	if err := repo.db.Table(ctx, "{{.TableName}}").
 		{{ range $queryFields }}Where("{{ .DbName }} = ?", {{ .LowCamelName }}). {{ end }}
@@ -82,7 +83,7 @@ func (repo *{{ .RepoImpName }}) FindManyWith{{ range $queryFields }}{{ .Name }}{
 }
 {{ else }}
 {{ $mutiQueryField := ( first .Fields ) }} 
-func (repo *{{ .RepoImpName }}) FindManyWith{{ $mutiQueryField.Name }}s(ctx rest.Context, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName }}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
+func (repo *{{ .RepoImpName }}) FindManyWith{{ $mutiQueryField.Name }}s(ctx context.Context, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName }}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	if err := repo.db.Table(ctx, "{{.TableName}}").
 		Where("{{ $mutiQueryField.DbName }} in (?)", {{ $mutiQueryField.LowCamelName }}s).
@@ -96,7 +97,7 @@ func (repo *{{ .RepoImpName }}) FindManyWith{{ $mutiQueryField.Name }}s(ctx rest
 
 var RepoFirstOrCreateFuncTpl = `
 // FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} data *{{.ModelPkgName}}.{{.ModelName}}) error { 
+func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx context.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} data *{{.ModelPkgName}}.{{.ModelName}}) error { 
 	resp := data {{$lastName := (last .Fields).Name}}
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -106,7 +107,7 @@ func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}
 	return nil
 } 
 // FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} data *{{.ModelPkgName}}.{{.ModelName}}) error { 
+func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}(ctx context.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} data *{{.ModelPkgName}}.{{.ModelName}}) error { 
 	resp := data {{$lastName := (last .Fields).Name}}
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -118,7 +119,7 @@ func (repo *{{.RepoImpName}}) FirstOrCreateWith{{range .Fields}}{{.Name}}{{end}}
 `
 var RepoFindOneFuncTpl = `
 // FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx context.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -128,7 +129,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(c
 	return resp, nil
 }
 // FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTxForUpdate(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTxForUpdate(ctx context.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
 	db := tx.Table(ctx, "{{$.TableName}}").Clauses(clause.Locking{Strength: "UPDATE"}).{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -138,7 +139,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}ByTxFo
 	return resp, nil
 }
 // FindOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
+func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx context.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) (*{{.ModelPkgName}}.{{.ModelName}}, error) { 
 	resp := &{{.ModelPkgName}}.{{.ModelName}}{} {{$lastName := (last .Fields).Name}}
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
@@ -150,7 +151,7 @@ func (repo *{{.RepoImpName}}) FindOneWith{{range .Fields}}{{.Name}}{{end}}(ctx r
 `
 var RepoDeleteFuncTpl = `{{$lastName := (last .Fields).Name}}
 // DeleteOneWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) error { 
+func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx context.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) error { 
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Delete({{.ModelPkgName}}.{{.ModelName}}{});err!=nil{
@@ -159,7 +160,7 @@ func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}ByTx
 	return nil
 } 
 // DeleteOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) error { 
+func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx context.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}}) error { 
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Delete({{.ModelPkgName}}.{{.ModelName}}{});err!=nil{
@@ -170,7 +171,7 @@ func (repo *{{.RepoImpName}}) DeleteOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 `
 var RepoUpdateFuncTpl = `{{$lastName := (last .Fields).Name}}
 // UpdateOneWith{{range .Fields}}{{.Name}}{{end}}ByTx 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx rest.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} attr map[string]interface{}) error { 
+func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}ByTx(ctx context.Context, tx db.MySQLDb, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} attr map[string]interface{}) error { 
 	db := tx.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Updates(attr);err!=nil{
@@ -180,7 +181,7 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}ByTx
 } 
 
 // UpdateOneWith{{range .Fields}}{{.Name}}{{end}} 根据唯一索引 {{.IdxName}} 生成
-func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx rest.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} attr map[string]interface{}) error { 
+func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx context.Context, {{range .Fields}}{{.LowCamelName}} {{.TypeName}},{{end}} attr map[string]interface{}) error { 
 	db := repo.db.Table(ctx, "{{$.TableName}}").{{range $i, $field := .Fields}}
         Where("{{$field.DbName}} = ?", {{$field.LowCamelName}}){{if not (eq $lastName $field.Name)}}.{{end}}{{end}}
 	if err := db.Updates(attr);err!=nil{
@@ -191,14 +192,14 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 `
 var RepoCreateFuncTpl = `
 // InsertByTx 默认生成的创建函数, 使用 tx 句柄
-func (repo *{{.RepoImpName}}) InsertByTx(ctx rest.Context, tx db.MySQLDb, data *{{.ModelPkgName}}.{{.ModelName}}) error {
+func (repo *{{.RepoImpName}}) InsertByTx(ctx context.Context, tx db.MySQLDb, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := tx.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
 		return errors.Wrap(err, "failed in repos")
     }
 	return nil
 }
 // Insert 默认生成的创建函数
-func (repo *{{.RepoImpName}}) Insert(ctx rest.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
+func (repo *{{.RepoImpName}}) Insert(ctx context.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := repo.db.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
 		return errors.Wrap(err, "failed in repos")
     }
