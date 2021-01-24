@@ -335,8 +335,10 @@ func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 			Level:     level,
 		}
 		if ctx != nil {
-			id := ctx.Value("rest-request-id")
-			entry.ContextID = id.(string)
+			id, ok := ctx.Value("rest-request-id").(string)
+			if ok {
+				entry.ContextID = id
+			}
 		}
 		switch entry.Level {
 		case DebugLogLevel:
