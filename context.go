@@ -39,8 +39,6 @@ type contextImp struct {
 	err error
 	// Keys 用于在控制流中传递内容
 	keys map[string]interface{}
-	// 用于标志唯一请求，上下文传递
-	requestID string
 
 	// mu 保护 Keys map
 	mu sync.RWMutex
@@ -97,14 +95,13 @@ func newContext() *contextImp {
 	return &c
 }
 func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *time.Duration) {
-	c.Context = context.Background()
+	c.Context = context.WithValue(context.Background(), "rest-request-id", strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1))
 	if timeOut != nil {
 		c.Context, _ = context.WithTimeout(c.Context, *timeOut)
 	}
 	c.request = req
 	c.resWriter = w
 	c.keys = map[string]interface{}{}
-	c.requestID = strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1)
 	c.index = -1
 	c.queryMap = map[string]string{}
 
@@ -185,7 +182,13 @@ func (c *contextImp) Method() string {
 func (c *contextImp) Path() string {
 	return c.request.URL.String()
 }
-func (c *contextImp) GetRequestID() string { return c.requestID }
+func (c *contextImp) GetRequestID() string {
+	val, ok := c.Context.Value("rest-request-id").(string)
+	if ok {
+		return val
+	}
+	return ""
+}
 func (c *contextImp) Set(key string, v interface{}) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
