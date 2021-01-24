@@ -41,10 +41,10 @@ func (d *DBLogger) Trace(ctx context.Context, begin time.Time, fc func() (string
 		logger.ErrorfWithContext(ctx, "[%.3fms] [rows:%v] %s \n err for %s", float64(elapsed.Nanoseconds())/1e6, rows, sql, err)
 	case elapsed > d.SlowSqlTime && d.SlowSqlTime != 0:
 		sql, rows := fc()
-		logger.WarnfWithContext(ctx, "[%.3fms] [rows:%v] %s", err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+		logger.WarnfWithContext(ctx, "[%.3fms] [rows:%v] %s", float64(elapsed.Nanoseconds())/1e6, rows, sql)
 	default:
 		sql, rows := fc()
-		logger.InfofWithContext(ctx, "[%.3fms] [rows:%v] %s", err, float64(elapsed.Nanoseconds())/1e6, rows, sql)
+		logger.InfofWithContext(ctx, "[%.3fms] [rows:%v] %s", float64(elapsed.Nanoseconds())/1e6, rows, sql)
 	}
 }
 
