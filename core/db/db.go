@@ -4,7 +4,6 @@ import (
 	"context"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 type MySQLDb interface {
@@ -72,7 +71,7 @@ func Open(dsn string) (MySQLDb, error) {
 	m := &dbImp{}
 	var err error
 	m.db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
+		Logger: NewDbLogger(),
 	})
 	return m, err
 }

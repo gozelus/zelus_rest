@@ -48,4 +48,3 @@ func (w *whereSQLImp) Where(query interface{}, args ...interface{}) interface {
 	}
 }
 
-var _ whereSQL = &whereSQLImp{}
