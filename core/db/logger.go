@@ -38,7 +38,7 @@ func (d *DBLogger) Trace(ctx context.Context, begin time.Time, fc func() (string
 	switch {
 	case err != nil:
 		sql, rows := fc()
-		logger.ErrorfWithContext(ctx, "[%.3fms] [rows:%v] %s \n err for %s", float64(elapsed.Nanoseconds())/1e6, rows, sql, err)
+		logger.ErrorfWithContext(ctx, "[%.3fms] [rows:%v] %s err for %s", float64(elapsed.Nanoseconds())/1e6, rows, sql, err)
 	case elapsed > d.SlowSqlTime && d.SlowSqlTime != 0:
 		sql, rows := fc()
 		logger.WarnfWithContext(ctx, "[%.3fms] [rows:%v] %s", float64(elapsed.Nanoseconds())/1e6, rows, sql)
