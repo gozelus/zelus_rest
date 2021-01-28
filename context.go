@@ -12,7 +12,6 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -25,28 +24,29 @@ type jwtUtils interface {
 }
 
 var _ context.Context = &contextImp{}
+var _ Context = &contextImp{}
 
 type contextImp struct {
 	context.Context
 	request   *http.Request
 	resWriter http.ResponseWriter
 
-	queryMap           map[string]string
-	requestBodyJsonStr string
-	httpCode           int
+	queryMap            map[string]string
+	requestBodyJsonStr  string
+	responseBodyJsonStr string
+	httpCode            int
 
 	// err 用于存储中间可能发生的错误
 	err error
-	// Keys 用于在控制流中传递内容
-	keys map[string]interface{}
-
-	// mu 保护 Keys map
-	mu sync.RWMutex
 
 	validate *validator.Validate
 	handlers []HandlerFunc
 	index    int8
 	jwtUtils jwtUtils
+}
+
+func (c *contextImp) ResponseBodyJsonStr() string {
+	return c.responseBodyJsonStr
 }
 
 func (c *contextImp) QueryMap() map[string]string {
@@ -66,10 +66,10 @@ func (c *contextImp) setJwtUtils(utils jwtUtils) {
 }
 
 func (c *contextImp) setJwtToken(tokenStr string) {
-	c.Set("jwt-token", tokenStr)
+	c.Context = context.WithValue(c.Context, "jwt-token", tokenStr)
 }
 func (c *contextImp) setUserID(uid int64) {
-	c.Set("jwt-user-id", uid)
+	c.Context = context.WithValue(c.Context, "jwt-user-id", uid)
 }
 
 func (c *contextImp) SetUserID(uid int64) {
@@ -82,8 +82,8 @@ func (c *contextImp) SetUserID(uid int64) {
 }
 
 func (c *contextImp) UserID() int64 {
-	if val, ok := c.Get("jwt-user-id"); ok {
-		return val.(int64)
+	if val, ok := c.Value("jwt-user-id").(int64); ok {
+		return val
 	}
 	return 0
 }
@@ -101,7 +101,6 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *tim
 	}
 	c.request = req
 	c.resWriter = w
-	c.keys = map[string]interface{}{}
 	c.index = -1
 	c.queryMap = map[string]string{}
 
@@ -138,8 +137,8 @@ func (c *contextImp) RenderOkJSON(data interface{}) {
 		Data:      data,
 		RequestID: c.GetRequestID(),
 	}
-	if token, ok := c.Get("jwt-token"); ok {
-		resp.Token = token.(string)
+	if token, ok := c.Value("jwt-token").(string); ok {
+		resp.Token = token
 	}
 	_ = c.renderJSON(http.StatusOK, resp)
 }
@@ -166,8 +165,8 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 		resp.Reason.Message = theError.GetReason().GetReasonMessage()
 	}
 
-	if token, ok := c.Get("jwt-token"); ok {
-		resp.Token = token.(string)
+	if token, ok := c.Context.Value("jwt-token").(string); ok {
+		resp.Token = token
 	}
 
 	_ = c.renderJSON(theError.GetCode(), resp)
@@ -188,18 +187,6 @@ func (c *contextImp) GetRequestID() string {
 		return val
 	}
 	return ""
-}
-func (c *contextImp) Set(key string, v interface{}) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.keys[key] = v
-}
-
-func (c *contextImp) Get(key string) (v interface{}, ok bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	v, ok = c.keys[key]
-	return
 }
 
 func (c *contextImp) setHandlers(hs ...HandlerFunc) {
@@ -261,6 +248,7 @@ func (c *contextImp) renderJSON(code int, obj interface{}) error {
 	if err != nil {
 		return err
 	}
+	c.responseBodyJsonStr = string(jsonBytes)
 	_, err = c.resWriter.Write(jsonBytes)
 	return err
 }

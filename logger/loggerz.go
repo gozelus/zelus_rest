@@ -319,6 +319,7 @@ type logEntry struct {
 	Color     color.Attribute `json:"-"`
 	Timestamp string          `json:"@timestamp"`
 	ContextID string          `json:"@context_id"`
+	UserID    int64           `json:"@user_id"`
 	Caller    string          `json:"@caller"`
 	Content   string          `json:"content"`
 	Level     LogLevel        `json:"-"`
@@ -338,6 +339,10 @@ func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 			id, ok := ctx.Value("rest-request-id").(string)
 			if ok {
 				entry.ContextID = id
+			}
+			userid, ok := ctx.Value("jwt-user-id").(int64)
+			if ok {
+				entry.UserID = userid
 			}
 		}
 		switch entry.Level {
@@ -378,9 +383,9 @@ func shouldLogToFile(entry *logEntry) {
 func outputColorString(entry *logEntry, writer io.Writer) {
 
 	if entry.ContextID != "" {
-		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.ContextID, entry.Timestamp, entry.Content))
+		_, _ = color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s %d [%s] : %s", entry.Caller, entry.LevelStr, entry.ContextID, entry.UserID, entry.Timestamp, entry.Content))
 	} else {
-		color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.Timestamp, entry.Content))
+		_, _ = color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.Timestamp, entry.Content))
 	}
 }
 

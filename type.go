@@ -46,6 +46,7 @@ type (
 		HttpCode() int
 		QueryMap() map[string]string
 		RequestBodyJsonStr() string
+		ResponseBodyJsonStr() string
 		// @Authored handler 的返回值才会有意义
 		UserID() int64
 		// 如果内部调用了此方法，会尝试生成 or 刷新一个 jwt 给客户端
@@ -69,8 +70,6 @@ type (
 
 		GetRequestID() string
 		GetError() error
-		Set(string, interface{})
-		Get(string) (interface{}, bool)
 
 		// private
 		init(http.ResponseWriter, *http.Request, *time.Duration)
