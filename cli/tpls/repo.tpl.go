@@ -191,15 +191,29 @@ func (repo *{{.RepoImpName}}) UpdateOneWith{{range .Fields}}{{.Name}}{{end}}(ctx
 } 
 `
 var RepoCreateFuncTpl = `
-// InsertByTx 默认生成的创建函数, 使用 tx 句柄
-func (repo *{{.RepoImpName}}) InsertByTx(ctx context.Context, tx db.MySQLDb, data *{{.ModelPkgName}}.{{.ModelName}}) error {
+// MCreateByTx 默认生成的创建函数, 使用 tx 句柄
+func (repo *{{.RepoImpName}}) MCreateByTx(ctx context.Context, tx db.MySQLDb, data ...*{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := tx.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
 		return errors.Wrap(err, "failed in repos")
     }
 	return nil
 }
-// Insert 默认生成的创建函数
-func (repo *{{.RepoImpName}}) Insert(ctx context.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
+// MCreate 默认生成的创建函数
+func (repo *{{.RepoImpName}}) MCreate(ctx context.Context, data ...*{{.ModelPkgName}}.{{.ModelName}}) error {
+	if err := repo.db.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
+		return errors.Wrap(err, "failed in repos")
+    }
+	return nil
+}
+// CreateByTx 默认生成的创建函数, 使用 tx 句柄
+func (repo *{{.RepoImpName}}) CreateByTx(ctx context.Context, tx db.MySQLDb, data *{{.ModelPkgName}}.{{.ModelName}}) error {
+	if err := tx.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
+		return errors.Wrap(err, "failed in repos")
+    }
+	return nil
+}
+// Create 默认生成的创建函数
+func (repo *{{.RepoImpName}}) Create(ctx context.Context, data *{{.ModelPkgName}}.{{.ModelName}}) error {
 	if err := repo.db.Table(ctx, "{{.TableName}}").Insert(data);err!=nil{
 		return errors.Wrap(err, "failed in repos")
     }
