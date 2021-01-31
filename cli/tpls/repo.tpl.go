@@ -71,6 +71,7 @@ var RepoFindManyFuncTpl = `
 {{ if not (eq $fieldsLength 1) }}
 {{ $queryFields := ( slice .Fields 0 (add $fieldsLength -1) ) }}
 {{ $mutiQueryField := ( last .Fields ) }}
+// FindManyWith{{ range $queryFields }}{{ .Name }}{{ end }}{{ $mutiQueryField.Name }}s(ctx context.Context, {{ range $queryFields }}{{ .LowCamelName }} {{ .TypeName }}{{ end }}, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName}}) 
 func (repo *{{ .RepoImpName }}) FindManyWith{{ range $queryFields }}{{ .Name }}{{ end }}{{ $mutiQueryField.Name }}s(ctx context.Context, {{ range $queryFields }}{{ .LowCamelName }} {{ .TypeName }}{{ end }}, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName}}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
 	var resp []*{{.ModelPkgName}}.{{.ModelName}}
 	if err := repo.db.Table(ctx, "{{.TableName}}").
@@ -83,13 +84,17 @@ func (repo *{{ .RepoImpName }}) FindManyWith{{ range $queryFields }}{{ .Name }}{
 }
 {{ else }}
 {{ $mutiQueryField := ( first .Fields ) }} 
-func (repo *{{ .RepoImpName }}) FindManyWith{{ $mutiQueryField.Name }}s(ctx context.Context, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName }}) ([]*{{.ModelPkgName}}.{{.ModelName}}, error) {
-	var resp []*{{.ModelPkgName}}.{{.ModelName}}
+func (repo *{{ .RepoImpName }}) FindManyWith{{ $mutiQueryField.Name }}s(ctx context.Context, {{ $mutiQueryField.LowCamelName }}s []{{ $mutiQueryField.TypeName }}) (map[{{ $mutiQueryField.TypeName }}]*{{.ModelPkgName}}.{{.ModelName}}, error) {
+	resp := map[{{ $mutiQueryField.TypeName }}]*{{.ModelPkgName}}.{{.ModelName}}{}
+	var datas []*{{.ModelPkgName}}.{{.ModelName}}
 	if err := repo.db.Table(ctx, "{{.TableName}}").
 		Where("{{ $mutiQueryField.DbName }} in (?)", {{ $mutiQueryField.LowCamelName }}s).
-		Find(&resp); err != nil {
+		Find(&datas); err != nil {
 		return nil, errors.Wrap(err, "failed in repos")
 	}
+	for _, data := range datas {
+		resp[data.{{ $mutiQueryField.Name }}] = data
+	}	
 	return resp, nil
 }
 {{ end }}
