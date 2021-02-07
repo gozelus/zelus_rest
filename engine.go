@@ -63,6 +63,7 @@ func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	ctx.setHandlers(append(e.middlewares, h)...)
 	// 3. pass ctx to handler and run it
 	ctx.Next()
+	e.pool.Put(ctx)
 }
 
 func (e *enginez) allocateContext() Context {
