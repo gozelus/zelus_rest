@@ -99,6 +99,12 @@ func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *tim
 	if timeOut != nil {
 		c.Context, _ = context.WithTimeout(c.Context, *timeOut)
 	}
+
+	c.handlers = nil
+	c.err = nil
+	c.httpCode = 0
+	c.responseBodyJsonStr = ""
+	c.requestBodyJsonStr = ""
 	c.request = req
 	c.resWriter = w
 	c.index = -1
