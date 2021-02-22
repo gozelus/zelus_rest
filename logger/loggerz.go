@@ -321,7 +321,7 @@ type logEntry struct {
 	ContextID string          `json:"context_id"`
 	UserID    int64           `json:"user_id"`
 	Caller    string          `json:"caller"`
-	Content   string          `json:"content"`
+	Message   string          `json:"message"`
 	Level     LogLevel        `json:"-"`
 }
 
@@ -332,7 +332,7 @@ func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 	shouldLog(level, func() {
 		entry := &logEntry{
 			Timestamp: getTimestamp(),
-			Content:   msg,
+			Message:   msg,
 			Level:     level,
 		}
 		if ctx != nil {
