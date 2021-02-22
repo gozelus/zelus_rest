@@ -315,12 +315,12 @@ func infoWithContext(ctx context.Context, msg string) {
 }
 
 type logEntry struct {
-	LevelStr  string          `json:"@level"`
+	LevelStr  string          `json:"level"`
 	Color     color.Attribute `json:"-"`
-	Timestamp string          `json:"@timestamp"`
-	ContextID string          `json:"@context_id"`
-	UserID    int64           `json:"@user_id"`
-	Caller    string          `json:"@caller"`
+	Timestamp string          `json:"timestamp"`
+	ContextID string          `json:"context_id"`
+	UserID    int64           `json:"user_id"`
+	Caller    string          `json:"caller"`
 	Content   string          `json:"content"`
 	Level     LogLevel        `json:"-"`
 }
@@ -347,16 +347,16 @@ func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 		}
 		switch entry.Level {
 		case DebugLogLevel:
-			entry.LevelStr = "[DEBUG]"
+			entry.LevelStr = "DEBUG"
 			entry.Color = color.FgHiMagenta
 		case InfoLogLevel:
-			entry.LevelStr = "[INFO]"
+			entry.LevelStr = "INFO"
 			entry.Color = color.FgHiBlue
 		case WarnLogLevel:
-			entry.LevelStr = "[WARN]"
+			entry.LevelStr = "WARN"
 			entry.Color = color.FgHiYellow
 		case ErrorLogLevel:
-			entry.LevelStr = "[ERROR]"
+			entry.LevelStr = "ERROR"
 			entry.Color = color.FgHiRed
 		}
 		entry.Caller = getCaller(skipStack + 2)
@@ -381,12 +381,7 @@ func shouldLogToFile(entry *logEntry) {
 	}
 }
 func outputColorString(entry *logEntry, writer io.Writer) {
-
-	if entry.ContextID != "" {
-		_, _ = color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s %s %d [%s] : %s", entry.Caller, entry.LevelStr, entry.ContextID, entry.UserID, entry.Timestamp, entry.Content))
-	} else {
-		_, _ = color.New(entry.Color).Fprintln(writer, fmt.Sprintf("%s %s [%s] : %s", entry.Caller, entry.LevelStr, entry.Timestamp, entry.Content))
-	}
+	outputJson(entry, writer)
 }
 
 func outputJson(entry *logEntry, writer io.Writer) {
