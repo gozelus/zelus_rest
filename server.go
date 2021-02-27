@@ -28,6 +28,7 @@ type Option = func(imp *Plugin)
 func newServerImp(port int, opts ...Option) *serverImp {
 	server := &serverImp{
 		port: port,
+		eng:  newEngz(),
 	}
 	p := &Plugin{
 		Logger:   nil,
