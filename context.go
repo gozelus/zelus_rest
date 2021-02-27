@@ -186,7 +186,7 @@ func (c *contextImp) Next() {
 	c.gc.Next()
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
-	if err := c.gc.BindJSON(ptr); err != nil {
+	if err := c.gc.ShouldBind(ptr); err != nil {
 		return err
 	}
 	if err := c.validate.Struct(ptr); err != nil {
