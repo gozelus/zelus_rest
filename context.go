@@ -48,7 +48,7 @@ func (c *contextImp) Err() error {
 }
 
 func (c *contextImp) Value(key interface{}) interface{} {
-	return c.gc.Request.Context().Value(key)
+	return c.gc.Value(key)
 }
 
 // ************************ jwt auth imp begin
@@ -142,6 +142,7 @@ func (c *contextImp) Path() string {
 }
 func (c *contextImp) setTimeout(duration time.Duration) {
 	ctx := c.gc.Request.Context()
+	ctx, _ = context.WithTimeout(ctx, duration)
 	c.gc.Request = c.gc.Request.WithContext(ctx)
 }
 func (c *contextImp) setRequestID(id string) {
