@@ -46,6 +46,8 @@ type (
 		UserID() int64
 		// 如果内部调用了此方法，会尝试生成 or 刷新一个 jwt 给客户端
 		SetUserID(int64)
+		// 设置响应头
+		SetResponseHeader(key, value string)
 
 		JSONBodyBind(v interface{}) error
 		JSONQueryBind(v interface{}) error
@@ -66,6 +68,7 @@ type (
 		GetError() error
 
 		// private
+		setTimeout(duration *time.Duration)
 		setUserID(int64)
 		setRequestID(string)
 		setJwtToken(string)

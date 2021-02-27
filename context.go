@@ -33,21 +33,20 @@ type contextImp struct {
 	jwtUtils jwtUtils
 }
 
-
 func (c *contextImp) Deadline() (deadline time.Time, ok bool) {
-	return c.gc.Deadline()
+	return c.gc.Request.Context().Deadline()
 }
 
 func (c *contextImp) Done() <-chan struct{} {
-	return c.gc.Done()
+	return c.gc.Request.Context().Done()
 }
 
 func (c *contextImp) Err() error {
-	return c.gc.Err()
+	return c.gc.Request.Context().Err()
 }
 
 func (c *contextImp) Value(key interface{}) interface{} {
-	return c.gc.Value(key)
+	return c.gc.Request.Context().Value(key)
 }
 
 // ************************ jwt auth imp begin
@@ -78,7 +77,7 @@ func (c *contextImp) SetUserID(uid int64) {
 // ************************ jwt auth imp end
 
 // contextImp 的构造函数
-func newContext(gc *gin.Context) *contextImp {
+func newContext(gc *gin.Context) Context {
 	c := contextImp{
 		gc:       gc,
 		validate: validator.New(),
@@ -130,11 +129,20 @@ func (c *contextImp) HttpCode() int {
 func (c *contextImp) Headers() map[string][]string {
 	return c.gc.Request.Header
 }
+func (c *contextImp) SetResponseHeader(key, value string) {
+	c.gc.Writer.Header().Set(key, value)
+}
 func (c *contextImp) Method() string {
 	return c.gc.Request.Method
 }
 func (c *contextImp) Path() string {
 	return c.gc.Request.URL.Path
+}
+func (c *contextImp) setTimeout(duration *time.Duration) {
+	if duration != nil {
+		ctx := c.gc.Request.Context()
+		c.gc.Request = c.gc.Request.WithContext(ctx)
+	}
 }
 func (c *contextImp) setRequestID(id string) {
 	c.gc.Set("rest-request-id", id)

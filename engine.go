@@ -14,8 +14,10 @@ type engz struct {
 }
 
 func newEngz() *engz {
+	ginEng := gin.New()
+	gin.SetMode(gin.ReleaseMode)
 	return &engz{
-		ginEng: gin.New(),
+		ginEng: ginEng,
 	}
 }
 
@@ -29,17 +31,28 @@ func (e *engz) use(middlrewares ...HandlerFunc) {
 
 func (e *engz) addRoute(method, path string, timeout *time.Duration, f HandlerFunc) error {
 	var wrap = func(ctx *gin.Context) {
-		f(newContext(ctx))
+		c := newContext(ctx)
+		c.setJwtUtils(e.jwtUtils)
+		c.setTimeout(timeout)
+		f(c)
 	}
 	switch method {
 	case http.MethodGet:
 		e.ginEng.GET(path, wrap)
 	case http.MethodPost:
+		e.ginEng.POST(path, wrap)
 	case http.MethodOptions:
+		e.ginEng.OPTIONS(path, wrap)
 	case http.MethodDelete:
+		e.ginEng.DELETE(path, wrap)
 	case http.MethodPut:
+		e.ginEng.PUT(path, wrap)
 	case http.MethodHead:
+		e.ginEng.HEAD(path, wrap)
+	default:
+		return errors.New("invalid method : %s", method)
 	}
+	return nil
 }
 
 func (e *engz) setJwtUtils(jwt *core.JwtUtils) {

@@ -37,6 +37,18 @@ var httpMetricsMiddleware = func(c Context) {
 	metricServerReqCodeTotal.Inc(c.Path(), strconv.Itoa(c.HttpCode()))
 }
 
+//CorsMiddleware 自带跨域中间件
+var CorsMiddleware = func(c Context) {
+	c.SetResponseHeader("Access-Control-Allow-Origin", "*")
+	c.SetResponseHeader("Access-Control-Allow-Credentials", "true")
+	c.SetResponseHeader("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	c.SetResponseHeader("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+	if c.Method() == "OPTIONS" {
+		c.RenderOkJSON(nil)
+		return
+	}
+	c.Next()
+}
 var requestIdGenMiddleware = func(c Context) {
 	requestID, err := uuid.GenerateUUID()
 	if err != nil {
