@@ -35,7 +35,7 @@ func (e *engz) addRoute(method, path string, timeout time.Duration, f HandlerFun
 		c := newContext(ctx)
 		c.setJwtUtils(e.jwtUtils)
 		if timeout == 0 {
-			timeout = time.Millisecond * 2000 // 默认1000ms
+			timeout = time.Millisecond * 2000 // 默认2000ms
 		}
 		c.setTimeout(timeout)
 		f(c)
@@ -64,5 +64,5 @@ func (e *engz) setJwtUtils(jwt *core.JwtUtils) {
 }
 
 func (e *engz) run(port int) error {
-	return e.ginEng.Run(fmt.Sprintf("127.0.0.1:%d", port))
+	return e.ginEng.Run(fmt.Sprintf(":%d", port))
 }
