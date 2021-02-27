@@ -29,7 +29,7 @@ type (
 		Handler            HandlerFunc
 		NeedAuthentication bool
 		AllowCORS          bool
-		TimeOut            *time.Duration
+		TimeOut            time.Duration
 	}
 
 	// 用于控制流
@@ -69,7 +69,7 @@ type (
 		GetError() error
 
 		// private
-		setTimeout(duration *time.Duration)
+		setTimeout(duration time.Duration)
 		setUserID(int64)
 		setRequestID(string)
 		setJwtToken(string)

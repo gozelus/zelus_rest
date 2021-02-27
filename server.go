@@ -12,7 +12,7 @@ import (
 
 type eng interface {
 	use(middlrewares ...HandlerFunc)
-	addRoute(method, path string, timeout *time.Duration, f HandlerFunc) error
+	addRoute(method, path string, timeout time.Duration, f HandlerFunc) error
 	setJwtUtils(*core.JwtUtils)
 	run(port int) error
 }

@@ -3,14 +3,15 @@ package codegen
 import (
 	"fmt"
 	"github.com/Masterminds/sprig"
-	"io"
 	"html/template"
+	"io"
 )
 
 var routesTpl = `package routes
 
 import (
 	"github.com/gozelus/zelus_rest"
+	"time"
 
 	{{ range $import, $key := .Imports }}
 	"{{ $import }}"
@@ -28,6 +29,7 @@ var Routes = []rest.Route {	{{ range $controller := .Controllers }} {{ range .Ha
 		Handler: {{ lower $controller.Name }}Controller.{{ .Name }},
 		NeedAuthentication: {{ .NeedAuthentication }},
 		AllowCORS: {{ .AllowCORS }},
+		TimeOut : {{ .TimeoutMs }} * time.Millisecond
 	},{{ end }}{{ end }}
 }
 `

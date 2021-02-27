@@ -8,6 +8,7 @@ import (
 	"github.com/gozelus/zelus_rest/cli/tpls"
 	"github.com/iancoleman/strcase"
 	"io"
+	"strconv"
 	"strings"
 	"text/template"
 )
@@ -32,6 +33,7 @@ type handler struct {
 	Name               string
 	RequestType        string
 	ResponseType       string
+	TimeoutMs          int64
 	NeedAuthentication bool
 	AllowCORS          bool
 	Comments           []string
@@ -150,16 +152,25 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 				return errors.New(fmt.Sprintf("line : %s is valid, check if u have the handler name", line))
 			}
 			if len(keys) > 2 {
-				if keys[2] == "@auth" {
-					h.NeedAuthentication = true
-				} else {
-					return errors.New(fmt.Sprintf("line : %s is valid, check if u have the auth tag", line))
-				}
-				if len(keys) > 3 {
-					if keys[3] == "@cors" {
+				for _, k := range keys[2:] {
+					switch k {
+					case "@auth":
+						h.NeedAuthentication = true
+					case "@cors":
 						h.AllowCORS = true
-					} else {
-						return errors.New(fmt.Sprintf("line : %s is valid, check if u have the cors tag", line))
+					default:
+						if strings.Contains(k, "@timeout") {
+							times := strings.Split(k, "@timeout_")
+							if len(times) != 2 {
+								return fmt.Errorf("key : %s cover to timeout err, plz check", k)
+							}
+							var err error
+							if h.TimeoutMs, err = strconv.ParseInt(times[1], 10, 64); err != nil {
+								return fmt.Errorf("key : %s cover to time err for %s, plz check", k, err)
+							}
+							continue
+						}
+						return fmt.Errorf("key : %s is not @auth, @cors, @timeout_*", k)
 					}
 				}
 			}

@@ -138,11 +138,9 @@ func (c *contextImp) Method() string {
 func (c *contextImp) Path() string {
 	return c.gc.Request.URL.Path
 }
-func (c *contextImp) setTimeout(duration *time.Duration) {
-	if duration != nil {
-		ctx := c.gc.Request.Context()
-		c.gc.Request = c.gc.Request.WithContext(ctx)
-	}
+func (c *contextImp) setTimeout(duration time.Duration) {
+	ctx := c.gc.Request.Context()
+	c.gc.Request = c.gc.Request.WithContext(ctx)
 }
 func (c *contextImp) setRequestID(id string) {
 	c.gc.Set("rest-request-id", id)

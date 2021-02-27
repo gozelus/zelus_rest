@@ -30,10 +30,13 @@ func (e *engz) use(middlrewares ...HandlerFunc) {
 	}
 }
 
-func (e *engz) addRoute(method, path string, timeout *time.Duration, f HandlerFunc) error {
+func (e *engz) addRoute(method, path string, timeout time.Duration, f HandlerFunc) error {
 	var wrap = func(ctx *gin.Context) {
 		c := newContext(ctx)
 		c.setJwtUtils(e.jwtUtils)
+		if timeout == 0 {
+			timeout = time.Millisecond * 2000 // 默认1000ms
+		}
 		c.setTimeout(timeout)
 		f(c)
 	}
