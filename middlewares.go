@@ -37,8 +37,7 @@ var httpMetricsMiddleware = func(c Context) {
 	metricServerReqCodeTotal.Inc(c.Path(), strconv.Itoa(c.HttpCode()))
 }
 
-//CorsMiddleware 自带跨域中间件
-var CorsMiddleware = func(c Context) {
+var corsMiddleware = func(c Context) {
 	c.SetResponseHeader("Access-Control-Allow-Origin", "*")
 	c.SetResponseHeader("Access-Control-Allow-Credentials", "true")
 	c.SetResponseHeader("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")

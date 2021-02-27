@@ -33,6 +33,7 @@ type handler struct {
 	RequestType        string
 	ResponseType       string
 	NeedAuthentication bool
+	AllowCORS          bool
 	Comments           []string
 }
 type ControllerGenner struct {
@@ -153,6 +154,13 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 					h.NeedAuthentication = true
 				} else {
 					return errors.New(fmt.Sprintf("line : %s is valid, check if u have the auth tag", line))
+				}
+				if len(keys) > 3 {
+					if keys[3] == "@cors" {
+						h.AllowCORS = true
+					} else {
+						return errors.New(fmt.Sprintf("line : %s is valid, check if u have the cors tag", line))
+					}
 				}
 			}
 			h.Name = strcase.ToCamel(keys[1])

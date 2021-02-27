@@ -28,6 +28,7 @@ type (
 		Path               string
 		Handler            HandlerFunc
 		NeedAuthentication bool
+		AllowCORS          bool
 		TimeOut            *time.Duration
 	}
 
@@ -93,6 +94,7 @@ type Plugin struct {
 	Logger       HandlerFunc
 	Recovery     HandlerFunc
 	RequestIdGen HandlerFunc
+	Cors         HandlerFunc                   // 跨域
 	Authored     func(HandlerFunc) HandlerFunc // 默认实现为 jwt
 	Metrics      HandlerFunc                   // prometheus
 	MetricsPort  int

@@ -51,7 +51,6 @@ func newServerImp(port int, opts ...Option) *serverImp {
 		}
 	}()
 
-	// 启动之前，检查下是否注入了 Logger 和 Recovery
 	if server.plugin.RequestIdGen == nil {
 		server.plugin.RequestIdGen = requestIdGenMiddleware
 		server.eng.use(server.plugin.RequestIdGen)
@@ -63,6 +62,10 @@ func newServerImp(port int, opts ...Option) *serverImp {
 	if server.plugin.Recovery == nil {
 		server.plugin.Recovery = recoverMiddleware
 		server.eng.use(server.plugin.Recovery)
+	}
+	if server.plugin.Cors == nil {
+		server.plugin.Cors = corsMiddleware
+		server.eng.use(server.plugin.Cors)
 	}
 	if server.plugin.Metrics == nil {
 		server.plugin.Metrics = httpMetricsMiddleware
