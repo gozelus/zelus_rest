@@ -23,14 +23,6 @@ var _ Context = &contextImp{}
 type contextImp struct {
 	gc *gin.Context
 
-	queryMap            map[string]string
-	requestBodyJsonStr  string
-	responseBodyJsonStr string
-	httpCode            int
-
-	// err 用于存储中间可能发生的错误
-	err error
-
 	validate *validator.Validate
 	jwtUtils jwtUtils
 }
@@ -84,20 +76,24 @@ func newContext(gc *gin.Context) Context {
 		gc:       gc,
 		validate: validator.New(),
 	}
-	c.queryMap = map[string]string{}
-
 	// copy request body
 	if c.gc != nil {
 		if c.gc.Request != nil {
-			bodyBytes, _ := ioutil.ReadAll(c.gc.Request.Body)
-			c.requestBodyJsonStr = string(bodyBytes)
-			_ = c.gc.Request.Body.Close() //  must close
-			c.gc.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-			// let query to map
-			for k := range c.gc.Request.URL.Query() {
-				if v, ok := c.gc.GetQuery(k); ok {
-					c.queryMap[k] = v
+			if _, ok := c.gc.Get("rest-request-body-json-str"); !ok {
+				bodyBytes, _ := ioutil.ReadAll(c.gc.Request.Body)
+				c.gc.Set("rest-request-body-json-str", string(bodyBytes))
+				_ = c.gc.Request.Body.Close() //  must close
+				c.gc.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			}
+			if _, ok := c.gc.Get("rest-query-map"); !ok {
+				// let query to map
+				queryMap := map[string]string{}
+				for k := range c.gc.Request.URL.Query() {
+					if v, ok := c.gc.GetQuery(k); ok {
+						queryMap[k] = v
+					}
 				}
+				c.gc.Set("rest-query-map", queryMap)
 			}
 		}
 	}
@@ -117,16 +113,19 @@ type standResp struct {
 }
 
 func (c *contextImp) ResponseBodyJsonStr() string {
-	return c.responseBodyJsonStr
+	return c.gc.GetString("rest-response-body-json-str")
 }
 func (c *contextImp) QueryMap() map[string]string {
-	return c.queryMap
+	if val, ok := c.gc.Get("rest-query-map"); ok {
+		return val.(map[string]string)
+	}
+	return nil
 }
 func (c *contextImp) RequestBodyJsonStr() string {
-	return c.requestBodyJsonStr
+	return c.gc.GetString("rest-request-body-json-str")
 }
 func (c *contextImp) HttpCode() int {
-	return c.httpCode
+	return c.gc.Writer.Status()
 }
 func (c *contextImp) Headers() map[string][]string {
 	return c.gc.Request.Header
@@ -140,6 +139,9 @@ func (c *contextImp) Method() string {
 func (c *contextImp) Path() string {
 	return c.gc.Request.URL.Path
 }
+func (c *contextImp) setError(err error) {
+	c.gc.Set("rest-error", err)
+}
 func (c *contextImp) setTimeout(duration time.Duration) {
 	ctx := c.gc.Request.Context()
 	ctx, _ = context.WithTimeout(ctx, duration)
@@ -152,7 +154,10 @@ func (c *contextImp) GetRequestID() string {
 	return c.gc.GetString("rest-request-id")
 }
 func (c *contextImp) GetError() error {
-	return c.err
+	if err, ok := c.gc.Get("rest-error"); ok {
+		return err.(error)
+	}
+	return nil
 }
 
 // ********************* control follow begin
@@ -168,7 +173,7 @@ func (c *contextImp) RenderOkJSON(data interface{}) {
 }
 func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	var theError StatusError = statusInternalServerError
-	c.err = err
+	c.setError(err)
 	if val, ok := err.(StatusError); ok {
 		theError = val
 	}
@@ -217,12 +222,11 @@ func (c *contextImp) JSONQueryBind(ptr interface{}) error {
 
 // private func
 func (c *contextImp) renderJSON(code int, obj interface{}) error {
-	c.httpCode = code
 	c.gc.AbortWithStatusJSON(code, obj)
 	jsonBytes, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
-	c.responseBodyJsonStr = string(jsonBytes)
+	c.gc.Set("rest-response-body-json-str", string(jsonBytes))
 	return err
 }

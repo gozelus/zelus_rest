@@ -70,6 +70,7 @@ type (
 
 		// private
 		setTimeout(duration time.Duration)
+		setError(error)
 		setUserID(int64)
 		setRequestID(string)
 		setJwtToken(string)

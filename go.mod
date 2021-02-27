@@ -11,9 +11,10 @@ require (
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/gin-contrib/cors v1.3.1 // indirect
-	github.com/gin-gonic/gin v1.6.3 // indirect
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/google/uuid v1.1.2
+	github.com/hashicorp/go-uuid v1.0.1
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/iancoleman/strcase v0.1.2
 	github.com/imdario/mergo v0.3.11 // indirect
