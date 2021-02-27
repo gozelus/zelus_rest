@@ -3,6 +3,7 @@ package rest
 import (
 	"github.com/gozelus/zelus_rest/core/metric"
 	"github.com/gozelus/zelus_rest/logger"
+	"github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 	"strconv"
 	"time"
@@ -34,6 +35,14 @@ var httpMetricsMiddleware = func(c Context) {
 	duration := time.Now().Sub(startTime).Milliseconds()
 	metricServerReqDur.Observe(int64(duration), c.Path())
 	metricServerReqCodeTotal.Inc(c.Path(), strconv.Itoa(c.HttpCode()))
+}
+
+var requestIdGenMiddleware = func(c Context) {
+	requestID, err := uuid.GenerateUUID()
+	if err != nil {
+		c.RenderErrorJSON(nil, err)
+	}
+	c.setRequestID(requestID)
 }
 var authorMiddleware = func(server *serverImp) func(HandlerFunc) HandlerFunc {
 	return func(handlerFunc HandlerFunc) HandlerFunc {

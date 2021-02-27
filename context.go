@@ -4,20 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
-	"github.com/gozelus/zelus_rest/core/bindding"
-	"io"
 	"io/ioutil"
-	"math"
 	"net/http"
-	"strings"
 	"time"
 )
-
-// abortIndex 一个极大值
-// 一定比 handlers 数量大，导致 next 函数执行中断
-const abortIndex int8 = math.MaxInt8 / 2
 
 type jwtUtils interface {
 	NewToken(uid int64) (string, error)
@@ -27,9 +19,7 @@ var _ context.Context = &contextImp{}
 var _ Context = &contextImp{}
 
 type contextImp struct {
-	context.Context
-	request   *http.Request
-	resWriter http.ResponseWriter
+	gc *gin.Context
 
 	queryMap            map[string]string
 	requestBodyJsonStr  string
@@ -40,38 +30,42 @@ type contextImp struct {
 	err error
 
 	validate *validator.Validate
-	handlers []HandlerFunc
-	index    int8
 	jwtUtils jwtUtils
 }
 
-func (c *contextImp) ResponseBodyJsonStr() string {
-	return c.responseBodyJsonStr
+
+func (c *contextImp) Deadline() (deadline time.Time, ok bool) {
+	return c.gc.Deadline()
 }
 
-func (c *contextImp) QueryMap() map[string]string {
-	return c.queryMap
+func (c *contextImp) Done() <-chan struct{} {
+	return c.gc.Done()
 }
 
-func (c *contextImp) RequestBodyJsonStr() string {
-	return c.requestBodyJsonStr
+func (c *contextImp) Err() error {
+	return c.gc.Err()
 }
 
-func (c *contextImp) HttpCode() int {
-	return c.httpCode
+func (c *contextImp) Value(key interface{}) interface{} {
+	return c.gc.Value(key)
 }
 
+// ************************ jwt auth imp begin
 func (c *contextImp) setJwtUtils(utils jwtUtils) {
 	c.jwtUtils = utils
 }
-
 func (c *contextImp) setJwtToken(tokenStr string) {
-	c.Context = context.WithValue(c.Context, "jwt-token", tokenStr)
+	c.gc.Set("jwt-token", tokenStr)
+}
+func (c *contextImp) GetJwtToken() string {
+	return c.gc.GetString("jwt-token")
 }
 func (c *contextImp) setUserID(uid int64) {
-	c.Context = context.WithValue(c.Context, "jwt-user-id", uid)
+	c.gc.Set("jwt-user-id", uid)
 }
-
+func (c *contextImp) UserID() int64 {
+	return c.gc.GetInt64("jwt-user-id")
+}
 func (c *contextImp) SetUserID(uid int64) {
 	token, err := c.jwtUtils.NewToken(uid)
 	if err != nil {
@@ -81,47 +75,32 @@ func (c *contextImp) SetUserID(uid int64) {
 	c.setJwtToken(token)
 }
 
-func (c *contextImp) UserID() int64 {
-	if val, ok := c.Value("jwt-user-id").(int64); ok {
-		return val
-	}
-	return 0
-}
+// ************************ jwt auth imp end
 
 // contextImp 的构造函数
-func newContext() *contextImp {
-	c := contextImp{}
-	c.validate = validator.New()
-	return &c
-}
-func (c *contextImp) init(w http.ResponseWriter, req *http.Request, timeOut *time.Duration) {
-	c.Context = context.WithValue(context.Background(), "rest-request-id", strings.Replace(uuid.Must(uuid.NewRandom()).String(), "-", "", -1))
-	if timeOut != nil {
-		c.Context, _ = context.WithTimeout(c.Context, *timeOut)
+func newContext(gc *gin.Context) *contextImp {
+	c := contextImp{
+		gc:       gc,
+		validate: validator.New(),
 	}
-
-	c.handlers = nil
-	c.err = nil
-	c.httpCode = 0
-	c.responseBodyJsonStr = ""
-	c.requestBodyJsonStr = ""
-	c.request = req
-	c.resWriter = w
-	c.index = -1
 	c.queryMap = map[string]string{}
 
 	// copy request body
-	if req != nil {
-		bodyBytes, _ := ioutil.ReadAll(req.Body)
-		c.requestBodyJsonStr = string(bodyBytes)
-		req.Body.Close() //  must close
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-
-		// let query to map
-		for k := range req.URL.Query() {
-			c.queryMap[k] = req.URL.Query().Get(k)
+	if c.gc != nil {
+		if c.gc.Request != nil {
+			bodyBytes, _ := ioutil.ReadAll(c.gc.Request.Body)
+			c.requestBodyJsonStr = string(bodyBytes)
+			_ = c.gc.Request.Body.Close() //  must close
+			c.gc.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			// let query to map
+			for k := range c.gc.Request.URL.Query() {
+				if v, ok := c.gc.GetQuery(k); ok {
+					c.queryMap[k] = v
+				}
+			}
 		}
 	}
+	return &c
 }
 
 type standResp struct {
@@ -136,6 +115,38 @@ type standResp struct {
 	Token string `json:"token"`
 }
 
+func (c *contextImp) ResponseBodyJsonStr() string {
+	return c.responseBodyJsonStr
+}
+func (c *contextImp) QueryMap() map[string]string {
+	return c.queryMap
+}
+func (c *contextImp) RequestBodyJsonStr() string {
+	return c.requestBodyJsonStr
+}
+func (c *contextImp) HttpCode() int {
+	return c.httpCode
+}
+func (c *contextImp) Headers() map[string][]string {
+	return c.gc.Request.Header
+}
+func (c *contextImp) Method() string {
+	return c.gc.Request.Method
+}
+func (c *contextImp) Path() string {
+	return c.gc.Request.URL.Path
+}
+func (c *contextImp) setRequestID(id string) {
+	c.gc.Set("rest-request-id", id)
+}
+func (c *contextImp) GetRequestID() string {
+	return c.gc.GetString("rest-request-id")
+}
+func (c *contextImp) GetError() error {
+	return c.err
+}
+
+// ********************* control follow begin
 func (c *contextImp) RenderOkJSON(data interface{}) {
 	resp := standResp{
 		Code:      200,
@@ -143,16 +154,9 @@ func (c *contextImp) RenderOkJSON(data interface{}) {
 		Data:      data,
 		RequestID: c.GetRequestID(),
 	}
-	if token, ok := c.Value("jwt-token").(string); ok {
-		resp.Token = token
-	}
+	resp.Token = c.GetJwtToken()
 	_ = c.renderJSON(http.StatusOK, resp)
 }
-
-func (c *contextImp) GetError() error {
-	return c.err
-}
-
 func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 	var theError StatusError = statusInternalServerError
 	c.err = err
@@ -165,70 +169,27 @@ func (c *contextImp) RenderErrorJSON(data interface{}, err error) {
 		Data:      data,
 		RequestID: c.GetRequestID(),
 	}
-
 	if theError.GetReason() != nil {
 		resp.Reason.Code = theError.GetReason().GetReasonCode()
 		resp.Reason.Message = theError.GetReason().GetReasonMessage()
 	}
-
-	if token, ok := c.Context.Value("jwt-token").(string); ok {
-		resp.Token = token
-	}
-
+	resp.Token = c.GetJwtToken()
 	_ = c.renderJSON(theError.GetCode(), resp)
 }
-
-func (c *contextImp) Headers() map[string][]string {
-	return c.request.Header
-}
-func (c *contextImp) Method() string {
-	return c.request.Method
-}
-func (c *contextImp) Path() string {
-	return c.request.URL.String()
-}
-func (c *contextImp) GetRequestID() string {
-	val, ok := c.Context.Value("rest-request-id").(string)
-	if ok {
-		return val
-	}
-	return ""
-}
-
-func (c *contextImp) setHandlers(hs ...HandlerFunc) {
-	c.handlers = hs
-}
 func (c *contextImp) Next() {
-	c.index++
-	for c.index < int8(len(c.handlers)) {
-		c.handlers[c.index](c)
-		c.index++
-	}
-}
-func (c *contextImp) File(name string) (io.Reader, error) {
-	f, _, err := c.request.FormFile(name)
-	if err != nil {
-		return nil, err
-	}
-	return f, nil
+	c.gc.Next()
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
-	var err error
-	if c.request.ContentLength > 0 && strings.Contains(c.request.Header.Get("Content-Type"), "application/json") {
-		err = binding.JSON.Bind(c.request, ptr)
-	} else {
-		err = binding.Form.Bind(c.request, ptr)
-	}
-	if err != nil {
+	if err := c.gc.BindJSON(ptr); err != nil {
 		return err
 	}
-	if err = c.validate.Struct(ptr); err != nil {
+	if err := c.validate.Struct(ptr); err != nil {
 		return err
 	}
 	return nil
 }
 func (c *contextImp) JSONQueryBind(ptr interface{}) error {
-	if err := binding.Query.Bind(c.request, ptr); err != nil {
+	if err := c.gc.BindQuery(ptr); err != nil {
 		return err
 	}
 	if err := c.validate.Struct(ptr); err != nil {
@@ -237,24 +198,16 @@ func (c *contextImp) JSONQueryBind(ptr interface{}) error {
 	return nil
 }
 
+// ******************** control follow end
+
 // private func
-
-// abort 用于中断流
-func (c *contextImp) abort() {
-	c.index = abortIndex
-}
 func (c *contextImp) renderJSON(code int, obj interface{}) error {
-	defer c.abort()
-
-	c.resWriter.Header().Add("Content-Type", "application/json; charset=utf-8")
-	c.resWriter.WriteHeader(code)
 	c.httpCode = code
-
+	c.gc.AbortWithStatusJSON(code, obj)
 	jsonBytes, err := json.Marshal(obj)
 	if err != nil {
 		return err
 	}
 	c.responseBodyJsonStr = string(jsonBytes)
-	_, err = c.resWriter.Write(jsonBytes)
 	return err
 }

@@ -1,71 +1,51 @@
 package rest
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/gozelus/zelus_rest/core"
 	"net/http"
-	"path"
-	"sync"
 	"time"
 )
 
-type enginez struct {
-	// routerz 实现路由搜索添加的功能
-	*routerz
-
-	// 挂载在引擎上的全局中间件
-	middlewares []HandlerFunc
-
-	// 用于取用 Context 实例
-	pool sync.Pool
-
-	// jwt
-	jwtUtils jwtUtils
-
-	// timeout default 1000 ms
-	timeout *time.Duration
+type engz struct {
+	jwtUtils *core.JwtUtils
+	ginEng   *gin.Engine
 }
 
-func newEnginez() *enginez {
-	e := &enginez{
-		routerz: newRouterz(),
-	}
-	e.pool.New = func() interface{} {
-		return e.allocateContext()
-	}
-	return e
-}
-
-func (e *enginez) addRoute(method, path string, handler HandlerFunc) error {
-	return e.routerz.addRoute(method, path, handler)
-}
-
-func (e *enginez) search(method, path string) (HandlerFunc, error) {
-	return e.routerz.search(method, path)
-}
-
-func (e *enginez) use(middlewares ...HandlerFunc) {
-	for _, m := range middlewares {
-		e.middlewares = append(e.middlewares, m)
+func newEngz() *engz {
+	return &engz{
+		ginEng: gin.New(),
 	}
 }
 
-func (e *enginez) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	reqPath := path.Clean(req.URL.Path)
-	h, _ := e.search(req.Method, reqPath)
-	// TODO need check method and path is ok
-	// means u should check search func called err result
-
-	// core code
-	// 1. get ctx from pool
-	ctx := e.pool.Get().(Context)
-	// 2. reset the ctx
-	ctx.init(w, req, e.timeout)
-	ctx.setJwtUtils(e.jwtUtils)
-	ctx.setHandlers(append(e.middlewares, h)...)
-	// 3. pass ctx to handler and run it
-	ctx.Next()
-	e.pool.Put(ctx)
+func (e *engz) use(middlrewares ...HandlerFunc) {
+	for _, m := range middlrewares {
+		e.ginEng.Use(func(context *gin.Context) {
+			m(newContext(context))
+		})
+	}
 }
 
-func (e *enginez) allocateContext() Context {
-	return newContext()
+func (e *engz) addRoute(method, path string, timeout *time.Duration, f HandlerFunc) error {
+	var wrap = func(ctx *gin.Context) {
+		f(newContext(ctx))
+	}
+	switch method {
+	case http.MethodGet:
+		e.ginEng.GET(path, wrap)
+	case http.MethodPost:
+	case http.MethodOptions:
+	case http.MethodDelete:
+	case http.MethodPut:
+	case http.MethodHead:
+	}
+}
+
+func (e *engz) setJwtUtils(jwt *core.JwtUtils) {
+	e.jwtUtils = jwt
+}
+
+func (e *engz) run(port int) error {
+	return e.ginEng.Run(fmt.Sprintf("127.0.0.1:%d", port))
 }

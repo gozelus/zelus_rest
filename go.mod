@@ -10,6 +10,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fastly/go-utils v0.0.0-20180712184237-d95a45783239 // indirect
 	github.com/fatih/color v1.10.0
+	github.com/gin-gonic/gin v1.6.3 // indirect
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/google/uuid v1.1.2
 	github.com/huandu/xstrings v1.3.2 // indirect
@@ -18,6 +19,7 @@ require (
 	github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/kr/pretty v0.2.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/lestrrat-go/strftime v1.0.3 // indirect
 	github.com/mitchellh/copystructure v1.0.0 // indirect
@@ -26,11 +28,12 @@ require (
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prometheus/procfs v0.3.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/tebeka/strftime v0.1.5 // indirect
+	github.com/ugorji/go v1.2.4 // indirect
 	github.com/urfave/cli v1.22.5
-	golang.org/x/crypto v0.0.0-20201221181555-eec23a3978ad // indirect
-	golang.org/x/sys v0.0.0-20210119212857-b64e53b001e4 // indirect
+	golang.org/x/crypto v0.0.0-20210220033148-5ea612d1eb83 // indirect
+	golang.org/x/sys v0.0.0-20210227040730-b0d1d43c014d // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gorm.io/driver/mysql v1.0.3
