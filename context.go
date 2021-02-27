@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/gozelus/zelus_rest/core/bindding"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -186,16 +188,22 @@ func (c *contextImp) Next() {
 	c.gc.Next()
 }
 func (c *contextImp) JSONBodyBind(ptr interface{}) error {
-	if err := c.gc.ShouldBind(ptr); err != nil {
+	var err error
+	if c.gc.Request.ContentLength > 0 && strings.Contains(c.gc.Request.Header.Get("Content-Type"), "application/json") {
+		err = binding.JSON.Bind(c.gc.Request, ptr)
+	} else {
+		err = binding.Form.Bind(c.gc.Request, ptr)
+	}
+	if err != nil {
 		return err
 	}
-	if err := c.validate.Struct(ptr); err != nil {
+	if err = c.validate.Struct(ptr); err != nil {
 		return err
 	}
 	return nil
 }
 func (c *contextImp) JSONQueryBind(ptr interface{}) error {
-	if err := c.gc.BindQuery(ptr); err != nil {
+	if err := binding.Query.Bind(c.gc.Request, ptr); err != nil {
 		return err
 	}
 	if err := c.validate.Struct(ptr); err != nil {
