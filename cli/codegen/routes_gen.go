@@ -29,7 +29,7 @@ var Routes = []rest.Route {	{{ range $controller := .Controllers }} {{ range .Ha
 		Handler: {{ lower $controller.Name }}Controller.{{ .Name }},
 		NeedAuthentication: {{ .NeedAuthentication }},
 		AllowCORS: {{ .AllowCORS }},
-		TimeOut : {{ .TimeoutMs }} * time.Millisecond
+		{{ if not (eq .TimeoutMs 0) }}TimeOut : {{ .TimeoutMs }} * time.Millisecond,{{ end }}
 	},{{ end }}{{ end }}
 }
 `
