@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gozelus/zelus_rest/core"
+	"github.com/pkg/errors"
 	"net/http"
 	"time"
 )
@@ -50,7 +51,7 @@ func (e *engz) addRoute(method, path string, timeout *time.Duration, f HandlerFu
 	case http.MethodHead:
 		e.ginEng.HEAD(path, wrap)
 	default:
-		return errors.New("invalid method : %s", method)
+		return errors.Errorf("invalid method : %s", method)
 	}
 	return nil
 }
