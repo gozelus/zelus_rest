@@ -36,7 +36,7 @@ func (c *contextImp) Done() <-chan struct{} {
 }
 
 func (c *contextImp) Err() error {
-	return c.gc.Errors
+	return c.gc.Err()
 }
 
 func (c *contextImp) Value(key interface{}) interface{} {
