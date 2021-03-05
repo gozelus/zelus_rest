@@ -28,15 +28,15 @@ type contextImp struct {
 }
 
 func (c *contextImp) Deadline() (deadline time.Time, ok bool) {
-	return c.gc.Request.Context().Deadline()
+	return c.gc.Deadline()
 }
 
 func (c *contextImp) Done() <-chan struct{} {
-	return c.gc.Request.Context().Done()
+	return c.gc.Done()
 }
 
 func (c *contextImp) Err() error {
-	return c.gc.Request.Context().Err()
+	return c.gc.Errors
 }
 
 func (c *contextImp) Value(key interface{}) interface{} {
