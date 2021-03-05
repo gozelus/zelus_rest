@@ -143,9 +143,9 @@ func (c *contextImp) setError(err error) {
 	c.gc.Set("rest-error", err)
 }
 func (c *contextImp) setTimeout(duration time.Duration) {
-	ctx := c.gc.Request.Context()
-	ctx, _ = context.WithTimeout(ctx, duration)
-	c.gc.Request = c.gc.Request.WithContext(ctx)
+	//ctx := c.gc.Request.Context()
+	//ctx, _ = context.WithTimeout(ctx, duration)
+	//c.gc.Request = c.gc.Request.WithContext(ctx)
 }
 func (c *contextImp) setRequestID(id string) {
 	c.gc.Set("rest-request-id", id)
