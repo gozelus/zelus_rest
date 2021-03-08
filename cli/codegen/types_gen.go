@@ -95,7 +95,7 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		}
 		if len(lineStr) > 0 && typeDefineBegin {
 			lineStr = strings.TrimLeft(lineStr, " ")
-			keys := strings.Split(lineStr, " ")
+			keys := strings.Fields(lineStr)
 			var f *Field
 			if len(keys) == 1 {
 				// 内联
