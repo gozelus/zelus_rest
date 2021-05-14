@@ -10,19 +10,54 @@ import (
 var apiCommand = cli.Command{
 	Name:  "api",
 	Usage: "根据 api 生成代码",
-	Flags: []cli.Flag{
-		cli.StringFlag{
-			Required: true,
-			Name:     "file",
-			Usage:    `api 文件的入口`,
+	Subcommands: []cli.Command{
+		{
+			Name:  "application",
+			Usage: "根据 api 文件生成 go 项目代码",
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Required: true,
+					Name:     "file",
+					Usage:    `api 文件的入口`,
+				},
+				cli.StringFlag{
+					Required: true,
+					Name:     "appname",
+					Usage:    `工程名`,
+				},
+			},
+			Action: actions.GenApis,
 		},
-		cli.StringFlag{
-			Required: true,
-			Name:     "appname",
-			Usage:    `工程名`,
+		{
+			Name:  "code",
+			Usage: "生成各语言请求代码",
+			Subcommands: []cli.Command{
+				{
+					Name:  "js",
+					Usage: "生成 js 请求代码",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Required: true,
+							Name:     "file",
+							Usage:    `api 文件的入口`,
+						},
+					},
+					Action: actions.GenJsRequestCode,
+				},
+				{
+					Name:  "go",
+					Usage: "生成 go 请求代码",
+					Flags: []cli.Flag{
+						cli.StringFlag{
+							Required: true,
+							Name:     "file",
+							Usage:    `api 文件的入口`,
+						},
+					},
+				},
+			},
 		},
 	},
-	Action: actions.GenApis,
 }
 var repoCommand = cli.Command{
 	Name:  "repo",

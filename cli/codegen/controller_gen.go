@@ -51,7 +51,7 @@ type ControllerGenner struct {
 
 	// key1 一级path  ->  文件夹名
 	// key2 二级path  ->  文件名
-	// 如 /v1/user/create -> { "v1" : { "user" : $controller } }
+	// 如 /v1/user/create -> { "v1" : { "user" : $user_controller } }
 	// controller 下的函数名，将会被 @handler 后的字符串映射
 	Group map[string]map[string]*Controller
 }
@@ -191,7 +191,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 			return errors.New(fmt.Sprintf("line : %s path : %s is too short, min lenth is 3", line, h.Path))
 		}
 		group := path[1]
-		controllerName := path[2]
+		controllerName := path[1] + "_" + path[2]
 		if _, ok := c.Group[group]; ok {
 			if excontroller, ok2 := c.Group[group][controllerName]; ok2 {
 				excontroller.Handlers = append(excontroller.Handlers, h)
@@ -205,7 +205,7 @@ func (c *ControllerGenner) handleHandlerLine(lines []string) error {
 					ServicesPkgName: group + "_services",
 					Imports: []string{
 						fmt.Sprintf(`"%s/internal"`, c.ModuleName),
-						fmt.Sprintf(`"%s/internal/services/v1"`, c.ModuleName),
+						fmt.Sprintf(`"%s/internal/services/%s"`, c.ModuleName, group),
 						fmt.Sprintf(`"%s/api/errors"`, c.ModuleName),
 					},
 				}

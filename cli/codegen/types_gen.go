@@ -95,12 +95,31 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		}
 		if len(lineStr) > 0 && typeDefineBegin {
 			lineStr = strings.TrimLeft(lineStr, " ")
-			keys := strings.Fields(lineStr)
+			tmp := strings.Fields(lineStr)
+
+			var keys []string
+			var tagBegin bool
+			var tag string
+			for _, k := range tmp {
+				if strings.Count(k, "`") == 1 {
+					if !tagBegin {
+						tagBegin = true
+						tag = k
+					} else {
+						tag = tag + " " + k
+						keys = append(keys, tag)
+					}
+					continue
+				}
+				keys = append(keys, k)
+			}
+
+			fmt.Println(strings.Join(keys, "|"))
 			var f *Field
 			if len(keys) == 1 {
 				// 内联
 				f = &Field{
-					Name:         keys[0],
+					Name: keys[0],
 				}
 			} else {
 				if len(keys) < 3 {
@@ -118,7 +137,7 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 				if len(keys) == 4 {
 					f.Comment = keys[3]
 				} else {
-					f.Comment = "// " + keys[4]
+					f.Comment = strings.Join(keys[3:], "")
 				}
 			}
 			lastType.Fields = append(lastType.Fields, f)
