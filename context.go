@@ -203,6 +203,9 @@ func (c *contextImp) JSONBodyBind(ptr interface{}) error {
 	if err != nil {
 		return err
 	}
+	if err := binding.Header.Bind(c.gc.Request, ptr); err != nil {
+		return err
+	}
 	if err = c.validate.Struct(ptr); err != nil {
 		return err
 	}
