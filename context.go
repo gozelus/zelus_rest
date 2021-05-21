@@ -197,6 +197,8 @@ func (c *contextImp) JSONBodyBind(ptr interface{}) error {
 	var err error
 	if c.gc.Request.ContentLength > 0 && strings.Contains(c.gc.Request.Header.Get("Content-Type"), "application/json") {
 		err = binding.JSON.Bind(c.gc.Request, ptr)
+	} else if strings.Contains(c.gc.Request.Header.Get("Content-Type"), "multipart/form-data") {
+		err = binding.MutiForm.Bind(c.gc.Request, ptr)
 	} else {
 		err = binding.Form.Bind(c.gc.Request, ptr)
 	}
