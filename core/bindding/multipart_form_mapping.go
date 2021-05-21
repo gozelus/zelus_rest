@@ -4,6 +4,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"reflect"
+	"errors"
 )
 
 type multipartRequest http.Request
