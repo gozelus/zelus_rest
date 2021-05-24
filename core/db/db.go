@@ -33,6 +33,7 @@ type dbImp struct {
 	*findSQLImp
 	*orderSQLImp
 	*clausesSQLImp
+	*execSQLImp
 }
 
 func (d *dbImp) Commit() {
