@@ -5,10 +5,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type ExecSQL interface {
+type execSQL interface {
+	Exec(ctx context.Context, sql string, value ...interface{}) error
 }
 
-var _ ExecSQL = &execSQLImp{}
+var _ execSQL = &execSQLImp{}
 
 type execSQLImp struct {
 	db *gorm.DB

@@ -7,7 +7,7 @@ import (
 )
 
 type MySQLDb interface {
-	ExecSQL
+	execSQL
 	Table(ctx context.Context, name string) interface {
 		whereSQL
 		insertSQL
