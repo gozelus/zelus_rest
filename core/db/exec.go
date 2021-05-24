@@ -5,10 +5,10 @@ import (
 	"gorm.io/gorm"
 )
 
-type execSQL interface {
+type ExecSQL interface {
 }
 
-var _ execSQL = &execSQLImp{}
+var _ ExecSQL = &execSQLImp{}
 
 type execSQLImp struct {
 	db *gorm.DB
