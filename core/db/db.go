@@ -14,6 +14,7 @@ type MySQLDb interface {
 		findSQL
 		orderSQL
 		clausesSQL
+		execSQL
 	}
 	Begin() interface {
 		MySQLDb
