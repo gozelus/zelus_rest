@@ -7,6 +7,7 @@ import (
 )
 
 type MySQLDb interface {
+	execSQL
 	Table(ctx context.Context, name string) interface {
 		whereSQL
 		insertSQL
@@ -14,7 +15,6 @@ type MySQLDb interface {
 		findSQL
 		orderSQL
 		clausesSQL
-		execSQL
 	}
 	Begin() interface {
 		MySQLDb

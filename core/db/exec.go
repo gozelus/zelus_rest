@@ -1,6 +1,9 @@
 package db
 
-import "gorm.io/gorm"
+import (
+	"context"
+	"gorm.io/gorm"
+)
 
 type execSQL interface {
 }
@@ -11,6 +14,6 @@ type execSQLImp struct {
 	db *gorm.DB
 }
 
-func (f *execSQLImp) Exec(sql string, values ...interface{}) error {
-	return f.db.Exec(sql, values...).Error
+func (f *execSQLImp) Exec(ctx context.Context, sql string, values ...interface{}) error {
+	return f.db.WithContext(ctx).Exec(sql, values...).Error
 }
