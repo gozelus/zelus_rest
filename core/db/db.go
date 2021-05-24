@@ -33,7 +33,10 @@ type dbImp struct {
 	*findSQLImp
 	*orderSQLImp
 	*clausesSQLImp
-	*execSQLImp
+}
+
+func (d *dbImp) Exec(ctx context.Context, sql string, value ...interface{}) error {
+	return d.db.WithContext(ctx).Exec(sql, value...).Error
 }
 
 func (d *dbImp) Commit() {
