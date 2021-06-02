@@ -96,21 +96,39 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		if len(lineStr) > 0 && typeDefineBegin {
 			lineStr = strings.TrimLeft(lineStr, " ")
 			tmp := strings.Fields(lineStr)
+			fmt.Println(strings.Join(tmp, "|"))
+			//PageSize|int|`query:"pageSize"|validate:"gte=10,lte=200"`
+			//PageSize|int
+
 
 			var keys []string
 			var tagBegin bool
 			var tag string
 			for _, k := range tmp {
-				if strings.Count(k, "`") == 1 {
-					if !tagBegin {
-						tagBegin = true
-						tag = k
-					} else {
-						tag = tag + " " + k
-						keys = append(keys, tag)
-					}
+				// 简单 tag
+				if strings.Count(k, "`") == 2 {
+					keys = append(keys, k)
 					continue
 				}
+
+				// 复杂 tag 开始 or 结尾
+				if strings.Count(k, "`") == 1 {
+					if tagBegin {
+						// tag define end
+						tag += (" " + k)
+						keys = append(keys, tag)
+					}
+					tag = k
+					tagBegin = true
+					continue
+				}
+
+				// 复杂tag 中段
+				if tagBegin {
+					tag += (" " + k)
+					continue
+				}
+
 				keys = append(keys, k)
 			}
 
@@ -144,4 +162,18 @@ func (t *TypesGenner) readAllTypeLinesStr() error {
 		}
 		lineNum++
 	}
+}
+
+func getStringInBetween(str string, start string, end string) (result string) {
+	s := strings.Index(str, start)
+	if s == -1 {
+		return
+	}
+	s += len(start)
+	e := strings.Index(str[s:], end)
+	if e == -1 {
+		return
+	}
+	fmt.Println(start, s, e)
+	return str[s:e]
 }
