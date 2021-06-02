@@ -210,7 +210,7 @@ func (m *PoModelStructInfo) initFields() error {
 		}
 		f := Field{}
 		f.DbName = strings.ReplaceAll(keys[0], "`", "")  // 第一项为字段名
-		f.MySQLTypeName = strings.Split(keys[1], "(")[0] // 类型名
+		f.MySQLTypeName = strings.ReplaceAll(strings.Split(keys[1], "(")[0], ",", "")// 类型名
 		f.LowCamelName = strcase.ToLowerCamel(f.DbName)
 		f.Name = strcase.ToCamel(f.DbName)
 
