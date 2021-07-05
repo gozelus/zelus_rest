@@ -133,6 +133,9 @@ func (c *contextImp) Headers() map[string][]string {
 func (c *contextImp) SetResponseHeader(key, value string) {
 	c.gc.Writer.Header().Set(key, value)
 }
+func (c *contextImp) Request() *http.Request {
+	return c.gc.Request
+}
 func (c *contextImp) Method() string {
 	return c.gc.Request.Method
 }

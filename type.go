@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"net/http"
 	"time"
 )
 
@@ -36,6 +37,7 @@ type (
 	Context interface {
 		context.Context
 
+		Request() *http.Request
 		Headers() map[string][]string
 		Method() string
 		Path() string
