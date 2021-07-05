@@ -360,7 +360,7 @@ func outputWithContext(ctx context.Context, level LogLevel, msg string) {
 			entry.Color = color.FgHiRed
 		}
 		entry.Caller = getCaller(skipStack + 2)
-		shouldLogToFile(entry)
+		//shouldLogToFile(entry)
 		shouldLogToConsole(entry)
 	})
 
